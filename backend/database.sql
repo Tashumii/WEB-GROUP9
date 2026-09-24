@@ -1,10 +1,42 @@
 ( User )
 
 CREATE TABLE users (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    role ENUM('Admin', 'Staff') NOT NULL,
-    business_id CHAR(36) NOT NULL
-);
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    business_id CHAR(36) NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff'
+) ENGINE=InnoDB;
+
+
+( Admin_Business )
+
+CREATE TABLE admin_businesses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    business_id CHAR(36) NOT NULL,
+
+    CONSTRAINT fk_admin_businesses_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+
+    CONSTRAINT fk_admin_businesses_business
+        FOREIGN KEY (business_id) REFERENCES business(id)
+) ENGINE=InnoDB;
+
+( Service )
+
+CREATE TABLE services (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    business_id CHAR(36) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    description TEXT NULL,
+    status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+
+    CONSTRAINT fk_services_business
+        FOREIGN KEY (business_id) REFERENCES business(id)
+) ENGINE=InnoDB;
+
 
 ( SALE )
 

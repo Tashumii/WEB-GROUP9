@@ -6,7 +6,7 @@ CREATE TABLE users (
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff'
-) ENGINE=InnoDB;
+);
 
 
 ( Admin_Business )

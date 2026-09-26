@@ -21,7 +21,7 @@ CREATE TABLE admin_businesses (
 
     CONSTRAINT fk_admin_businesses_business
         FOREIGN KEY (business_id) REFERENCES business(id)
-) ENGINE=InnoDB;
+);
 
 ( Service )
 
@@ -35,7 +35,7 @@ CREATE TABLE services (
 
     CONSTRAINT fk_services_business
         FOREIGN KEY (business_id) REFERENCES business(id)
-) ENGINE=InnoDB;
+);
 
 
 ( SALE )

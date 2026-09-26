@@ -6,7 +6,7 @@ CREATE TABLE users (
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff'
-);
+)engine=innodb;
 
 
 ( Admin_Business )
@@ -30,7 +30,6 @@ CREATE TABLE services (
     business_id CHAR(36) NOT NULL,
     name VARCHAR(255) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
-    description TEXT NULL,
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
 
     CONSTRAINT fk_services_business

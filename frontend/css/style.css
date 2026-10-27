@@ -1,0 +1,330 @@
+/* 
+   stylesheet for sales
+ */
+
+body {
+    font-family: "Inter", system-ui, sans-serif;
+    background: #ececec;
+    color: #111;
+}
+
+
+/*  1. Layout */
+.app {
+    /* --vh-px is set by the script in the HTML file; 900px is the fallback */
+    min-height: var(--vh-px, 900px);
+}
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #d9d9d9;
+    background: #fff;
+}
+
+.content {
+    min-width: 0;
+    padding: 1.25rem 1rem 2rem;
+}
+
+
+/* 2. Sidebar */
+.sidebar {
+    background: #000;
+    color: #fff;
+    --bs-offcanvas-width: 270px;
+}
+
+.sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 1.5rem 1.1rem;
+}
+
+.brand {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+/* Sidebar links */
+.side-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.side-link i {
+    font-size: 0.95rem;
+}
+
+.side-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.side-link.active,
+.side-link.active:focus,
+.side-link.active:focus-visible,
+.side-link.active:active {
+    background: #c9c9c9;
+    color: #111;
+    font-weight: 600;
+}
+
+/* Remove every blue (text, glow, outline, tap flash) inside the sidebar */
+.sidebar *:focus,
+.sidebar *:focus-visible,
+.sidebar *:active {
+    outline: none;
+    box-shadow: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.side-link:focus,
+.side-link:focus-visible,
+.side-link:active {
+    color: #fff;
+}
+
+/* Signed-in user block */
+.user {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding-top: 1rem;
+    border-top: 1px solid #333;
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #fff;
+    color: #000;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.user-name {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.user-role {
+    font-size: 0.65rem;
+    color: #9a9a9a;
+}
+
+
+/* 3. Page heading */
+.page-title {
+    margin: 0;
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    font-weight: 800;
+}
+
+.page-sub {
+    margin: 0.25rem 0 1.25rem;
+    font-size: 0.8rem;
+    color: #6b6b6b;
+}
+
+
+/*  4. Cards */
+.card-box,
+.ui-card {
+    border-radius: 14px;
+    background: #fff;
+}
+
+.ui-card-body {
+    padding: 1.25rem;
+}
+
+
+/* 5. Filters & form fields */
+.btn-pill {
+    padding: 0.35rem 1rem;
+    border: 1px solid #d9d9d9;
+    border-radius: 999px;
+    background: #fff;
+    color: #555;
+    font-size: 0.8rem;
+}
+
+.btn-pill:hover {
+    background: #f2f2f2;
+    color: #111;
+}
+
+.btn-pill.active {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+    font-weight: 600;
+}
+
+.field-label {
+    margin-bottom: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.field,
+.ui-input {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.field:focus,
+.ui-input:focus {
+    border-color: #1e90e6;
+    box-shadow: 0 0 0 0.2rem rgba(30, 144, 230, 0.2);
+}
+
+
+/* 6. Stats */
+.stat {
+    height: 100%;
+    padding: 1rem 1.15rem;
+}
+
+.stat-label {
+    font-size: 0.72rem;
+    color: #444;
+}
+
+.stat-value {
+    margin-top: 0.35rem;
+    font-size: clamp(1.35rem, 3vw, 1.7rem);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.stat-note {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    color: #555;
+}
+
+
+/* 7. Tables */
+.sales-table {
+    min-width: 620px;
+    font-size: 0.8rem;
+}
+
+.sales-table thead th {
+    padding: 0.75rem 0.6rem;
+    border-bottom: 1px solid #111;
+    color: #333;
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.sales-table tbody td {
+    padding: 0.85rem 0.6rem;
+    border-bottom: 1px solid #eee;
+    white-space: nowrap;
+}
+
+/* Stock status badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    color: #000;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+.status-low {
+    background: #f8b99f;
+}
+
+.status-available {
+    background: #b6f5a5;
+}
+
+/* Row edit button */
+.edit-btn {
+    padding: 0.25rem;
+    border: 0;
+    background: none;
+    color: #000;
+}
+
+.edit-btn:hover {
+    color: #555;
+}
+
+
+/*  8. Info box */
+.info-box {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: #000;
+    color: #fff;
+    font-size: 0.7rem;
+}
+
+
+/* 9. Breakpoints (mobile first) */
+
+/* Small tablets and up */
+@media (min-width: 576px) {
+    .content {
+        padding: 1.75rem 1.5rem 2.5rem;
+    }
+}
+
+/* Desktop: sidebar becomes a fixed column beside the content */
+@media (min-width: 992px) {
+    .app {
+        display: flex;
+    }
+
+    /* !important is needed here so the transparent designs stay visible */
+    .sidebar.offcanvas-lg {
+        position: sticky !important;
+        top: 0;
+        flex: 0 0 240px !important;
+        height: var(--vh-px, 900px) !important;
+        background-color: #000 !important;
+    }
+
+    .content {
+        flex: 1 1 auto;
+        padding: 2rem 2.25rem 2.5rem;
+    }
+}
+
+/* Large desktop */
+@media (min-width: 1400px) {
+    .content {
+        padding: 2.5rem 3rem;
+    }
+}

@@ -1,9 +1,23 @@
 <?php
+// session init
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+
+// auth guard
+if (empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
 
 $pageTitle     = $pageTitle     ?? 'Dashboard';
 $pageSubtitle  = $pageSubtitle  ?? '';
 $activePage    = $activePage    ?? 'dashboard';
 $headerActions = $headerActions ?? '';
+
+$currentUser = htmlspecialchars($_SESSION['username'] ?? 'User');
+$currentRole = htmlspecialchars(ucfirst($_SESSION['role'] ?? 'Staff'));
+$initials    = strtoupper(substr($currentUser, 0, 2));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,18 +28,19 @@ $headerActions = $headerActions ?? '';
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
   <!-- Inter font (same font as the Figma design) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <!-- Your own styles -->
-  <link href="assets/css/style.css" rel="stylesheet">
+  <!-- custom css -->
+  <link href="css/style.css" rel="stylesheet">
 </head>
-<body>
+<body class="dashboard-layout">
 
-  <!-- ===================== SIDEBAR ===================== -->
+  <!-- sidebar layout -->
   <aside class="sidebar">
 
     <div class="sidebar-logo">
@@ -35,7 +50,7 @@ $headerActions = $headerActions ?? '';
 
     <nav class="sidebar-nav">
 
-      <a href="dashboard.php" class="nav-item-link <?= $activePage === 'dashboard' ? 'active' : '' ?>">
+      <a href="Dashboard.php" class="nav-item-link <?= $activePage === 'dashboard' ? 'active' : '' ?>">
         <!-- Grid icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7"/>
@@ -46,7 +61,7 @@ $headerActions = $headerActions ?? '';
         <span>Dashboard</span>
       </a>
 
-      <a href="record-sales.php" class="nav-item-link <?= $activePage === 'record' ? 'active' : '' ?>">
+      <a href="RecordSales.php" class="nav-item-link <?= $activePage === 'record' ? 'active' : '' ?>">
         <!-- Shopping cart icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="9" cy="21" r="1"/>
@@ -56,7 +71,7 @@ $headerActions = $headerActions ?? '';
         <span>Record Sale</span>
       </a>
 
-      <a href="products-services.php" class="nav-item-link <?= $activePage === 'products' ? 'active' : '' ?>">
+      <a href="Products.php" class="nav-item-link <?= $activePage === 'products' ? 'active' : '' ?>">
         <!-- Box icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -66,7 +81,7 @@ $headerActions = $headerActions ?? '';
         <span>Products &amp; Services</span>
       </a>
 
-      <a href="sales-history.php" class="nav-item-link <?= $activePage === 'sales' ? 'active' : '' ?>">
+      <a href="Sales.php" class="nav-item-link <?= $activePage === 'sales' ? 'active' : '' ?>">
         <!-- Clock icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -75,7 +90,7 @@ $headerActions = $headerActions ?? '';
         <span>Sales History</span>
       </a>
 
-      <a href="analytics.php" class="nav-item-link <?= $activePage === 'analytics' ? 'active' : '' ?>">
+      <a href="Analytics.php" class="nav-item-link <?= $activePage === 'analytics' ? 'active' : '' ?>">
         <!-- Bar chart icon -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="20" x2="18" y2="10"/>
@@ -85,7 +100,7 @@ $headerActions = $headerActions ?? '';
         <span>Analytics</span>
       </a>
 
-      <a href="settings.php" class="nav-item-link <?= $activePage === 'settings' ? 'active' : '' ?>">
+      <a href="Settings.php" class="nav-item-link <?= $activePage === 'settings' ? 'active' : '' ?>">
         <!-- Settings icon (three sliders) -->
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="4" y1="21" x2="4" y2="14"/>
@@ -103,14 +118,24 @@ $headerActions = $headerActions ?? '';
 
     </nav>
 
-    <!-- User at the bottom of the sidebar -->
-    <div class="sidebar-user">
-      <!-- To use a photo, replace the circle with: <img src="assets/img/avatar.jpg" alt="" class="avatar"> -->
-      <div class="avatar avatar-blue">GB</div>
-      <div class="sidebar-user-text">
-        <span class="sidebar-user-name">Gian Bulasag</span>
-        <span class="sidebar-user-role">User</span>
+    <!-- user info -->
+    <div class="sidebar-user d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div class="avatar avatar-blue">
+          <?= $initials ?>
+        </div>
+        <div class="sidebar-user-text">
+          <span class="sidebar-user-name"><?= $currentUser ?></span>
+          <span class="sidebar-user-role"><?= $currentRole ?></span>
+        </div>
       </div>
+      <a href="logout.php" class="text-white opacity-75 text-decoration-none" title="Log out">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
     </div>
 
   </aside>

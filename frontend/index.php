@@ -8,14 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-
-<?php
-$pageTitle = 'Home';
-$pageSubtitle = 'Sales Tracker';
-$activePage   = 'home';
-
-include 'includes/header.php';
-?>
 </head>
 
 <body>
@@ -206,7 +198,6 @@ include 'includes/header.php';
         </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <?php include 'includes/footer.php'; ?>
 </body>
 
 </html>

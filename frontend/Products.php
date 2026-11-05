@@ -1,74 +1,69 @@
 <?php
 
 $pageTitle    = 'Products & Services';
-$pageSubtitle = 'Manage printing and other services, their prices and availability';
+$pageSubtitle = 'Manage products, stock quantity, prices and availability';
 $activePage   = 'products';
 
 include 'includes/header.php';
 ?>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="css/style.css">
-
-<!-- This is for Actions -->
+<!-- action button -->
 <div class="d-flex justify-content-end gap-2 mb-3">
-    <button type="button" class="btn btn-pill">
-        <i class="bi bi-plus"></i> Add product
-    </button>
-    <button type="button" class="btn btn-pill active">
+    <button type="button" class="btn btn-pill active" id="addProductBtn">
         <i class="bi bi-plus"></i> Add product
     </button>
 </div>
 
-<!-- Stat cards to check yung benta it could be per day or weeks -->
+<!-- stat cards -->
 <section class="row g-3 mb-3">
     <div class="col-12 col-md-4">
         <div class="ui-card stat">
-            <div class="stat-label">Services revenue - September</div>
-            <div class="stat-value">₱63,124</div>
-            <div class="stat-note">38% of all revenue</div>
+            <div class="stat-label">Products revenue - October</div>
+            <div class="stat-value">₱102,992</div>
+            <div class="stat-note">62% of all revenue</div>
         </div>
     </div>
     <div class="col-6 col-md-4">
         <div class="ui-card stat">
-            <div class="stat-label">Active services</div>
-            <div class="stat-value">5</div>
-            <div class="stat-note">1 marked unavailable</div>
+            <div class="stat-label">Active products</div>
+            <div class="stat-value">6</div>
+            <div class="stat-note">2 low stock</div>
         </div>
     </div>
     <div class="col-6 col-md-4">
         <div class="ui-card stat">
-            <div class="stat-label">Top services</div>
-            <div class="stat-value">Photocopy</div>
-            <div class="stat-note">₱31,400 in September</div>
+            <div class="stat-label">Top product</div>
+            <div class="stat-value">A4 paper</div>
+            <div class="stat-note">₱102,600 in October</div>
         </div>
     </div>
 </section>
 
 <div class="row g-3">
 
-    <!-- List if pipindutin mo yung button na products and services dapat yung lalabas na button for products and services lang same desgin lang din -->
+    <!-- products list -->
     <div class="col-xl-8">
         <section class="ui-card h-100">
             <div class="ui-card-body">
 
                 <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+                    <!-- page tabs -->
                     <div class="d-flex gap-2" id="tabs">
-                        <button type="button" class="btn btn-pill">Products</button>
-                        <button type="button" class="btn btn-pill active">Services</button>
+                        <button type="button" class="btn btn-pill active">Products</button>
+                        <a href="Services.php" class="btn btn-pill">Services</a>
                     </div>
                     <div class="input-group ms-md-auto" style="max-width:280px;">
                         <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
                         <input type="search" id="search" class="form-control ui-input border-start-0"
-                            placeholder="Search services">
+                            placeholder="Search products">
                     </div>
                 </div>
 
+                <!-- status pills -->
                 <div class="d-flex flex-wrap gap-2 mb-3" id="pills">
-                    <button type="button" class="btn btn-pill active">All - 6</button>
-                    <button type="button" class="btn btn-pill">Available - 5</button>
-                    <button type="button" class="btn btn-pill">Unavailable - 1</button>
+                    <button type="button" class="btn btn-pill active" data-filter="all">All</button>
+                    <button type="button" class="btn btn-pill" data-filter="available">Available</button>
+                    <button type="button" class="btn btn-pill" data-filter="low">Low stock</button>
                 </div>
 
                 <div class="table-responsive">
@@ -84,41 +79,37 @@ include 'includes/header.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
+                            <tr data-status="low">
                                 <td class="fw-semibold">Ballpen black</td>
                                 <td>Writing</td>
                                 <td>₱8</td>
                                 <td>14</td>
                                 <td><span class="status-badge status-low">Low stock</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i
-                                            class="bi bi-pencil-square"></i></button></td>
+                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
                             </tr>
-                            <tr>
-                                <td class="fw-semibold">A4</td>
+                            <tr data-status="available">
+                                <td class="fw-semibold">A4 paper</td>
                                 <td>Paper</td>
                                 <td>₱285</td>
                                 <td>30</td>
                                 <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i
-                                            class="bi bi-pencil-square"></i></button></td>
+                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
                             </tr>
-                            <tr>
+                            <tr data-status="available">
                                 <td class="fw-semibold">Crayons</td>
                                 <td>Art supplies</td>
                                 <td>₱35</td>
                                 <td>60</td>
                                 <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i
-                                            class="bi bi-pencil-square"></i></button></td>
+                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
                             </tr>
-                            <tr>
+                            <tr data-status="low">
                                 <td class="fw-semibold">Pencil</td>
                                 <td>Writing</td>
                                 <td>₱16</td>
                                 <td>6</td>
                                 <td><span class="status-badge status-low">Low stock</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i
-                                            class="bi bi-pencil-square"></i></button></td>
+                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -128,45 +119,58 @@ include 'includes/header.php';
         </section>
     </div>
 
-    <!-- Edit form  just in case na mali yung na type mo sa products can edit naman sa changes -->
+    <!-- edit form -->
     <div class="col-xl-4">
         <section class="ui-card h-100">
             <div class="ui-card-body">
-                <form onsubmit="return false">
+                <form id="productForm" onsubmit="return false">
                     <div class="mb-3">
-                        <label for="serviceName" class="field-label">Service name</label>
-                        <input type="text" id="serviceName" class="form-control ui-input" value="Colored Printing">
+                        <label for="productName" class="field-label">Product name</label>
+                        <input type="text" id="productName" class="form-control ui-input" value="Ballpen black" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="field-label">Category</label>
+                        <select id="category" class="form-select ui-input">
+                            <option selected>Writing</option>
+                            <option>Paper</option>
+                            <option>Art supplies</option>
+                            <option>Office</option>
+                        </select>
                     </div>
 
                     <div class="row g-2 mb-3">
-                        <div class="col-5">
+                        <div class="col-6">
                             <label for="price" class="field-label">Price (₱)</label>
-                            <input type="number" id="price" class="form-control ui-input" value="15.00" step="0.01">
+                            <input type="number" id="price" class="form-control ui-input" value="8.00" step="0.01" min="0" required>
                         </div>
-                        <div class="col-7">
-                            <label for="chargedPer" class="field-label">Charged per</label>
-                            <select id="chargedPer" class="form-select ui-input">
-                                <option selected>Page</option>
-                                <option>Copy</option>
-                            </select>
+                        <div class="col-6">
+                            <label for="stock" class="field-label">Stock qty</label>
+                            <input type="number" id="stock" class="form-control ui-input" value="14" min="0" required>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="description" class="field-label">Description</label>
-                        <textarea id="description" class="form-control ui-input" rows="4"
-                            placeholder="Full-color print on short or A4 paper. Customer's file or flash drive."></textarea>
+                        <label for="status" class="field-label">Status</label>
+                        <select id="status" class="form-select ui-input">
+                            <option value="available" selected>Available</option>
+                            <option value="low">Low stock</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
                     </div>
 
                     <div class="info-box mb-3">
                         <i class="bi bi-info-square-fill"></i>
-                        <span>Services don't use stock. Quantity and unit price are saved with every sale, so past sales
-                            keep their original price when you change it here.</span>
+                        <span>Physical products track live inventory. Stock is deducted automatically upon every sale recorded.</span>
                     </div>
 
                     <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-pill active">Save changes</button>
-                        <button type="button" class="btn btn-pill">Cancel</button>
+                        <button type="button" class="btn btn-pill active" id="saveProductBtn">Save changes</button>
+                        <button type="button" class="btn btn-pill" id="cancelProductBtn">Cancel</button>
+                    </div>
+
+                    <div id="productMsg" class="text-success text-center mt-2 d-none" style="font-size:0.8rem;">
+                        Product updated!
                     </div>
                 </form>
             </div>
@@ -176,21 +180,115 @@ include 'includes/header.php';
 </div>
 
 <script>
-    // Toggle Products / Services
-    document.querySelectorAll('#tabs .btn-pill').forEach(function (b) {
-        b.addEventListener('click', function () {
-            document.querySelectorAll('#tabs .btn-pill').forEach(function (x) { x.classList.remove('active'); });
-            b.classList.add('active');
+    // active row
+    var activeRow = document.querySelector('#table tbody tr');
+
+    // edit populate
+    function bindEditButtons() {
+        document.querySelectorAll('#table .edit-btn').forEach(function (btn) {
+            btn.onclick = function () {
+                activeRow = btn.closest('tr');
+                var cells = activeRow.querySelectorAll('td');
+                document.getElementById('productName').value = cells[0].textContent.trim();
+                var cat = cells[1].textContent.trim();
+                var selCat = document.getElementById('category');
+                for (var i = 0; i < selCat.options.length; i++) {
+                    if (selCat.options[i].text === cat) { selCat.selectedIndex = i; break; }
+                }
+                document.getElementById('price').value = cells[2].textContent.replace('₱', '').trim();
+                document.getElementById('stock').value = cells[3].textContent.trim();
+                var badgeText = cells[4].textContent.toLowerCase();
+                var selStatus = document.getElementById('status');
+                selStatus.value = badgeText.indexOf('low') !== -1 ? 'low' : 'available';
+            };
         });
+    }
+    bindEditButtons();
+
+    // add product
+    document.getElementById('addProductBtn').addEventListener('click', function () {
+        activeRow = null;
+        document.getElementById('productName').value = '';
+        document.getElementById('price').value = '0.00';
+        document.getElementById('stock').value = '0';
+        document.getElementById('productName').focus();
     });
-    // Toggle filter pills
+
+    // cancel edit
+    document.getElementById('cancelProductBtn').addEventListener('click', function () {
+        if (activeRow) {
+            var firstBtn = activeRow.querySelector('.edit-btn');
+            if (firstBtn) firstBtn.click();
+        } else {
+            document.getElementById('productName').value = 'Ballpen black';
+            document.getElementById('price').value = '8.00';
+            document.getElementById('stock').value = '14';
+        }
+    });
+
+    // save changes
+    document.getElementById('saveProductBtn').addEventListener('click', function () {
+        var name = document.getElementById('productName').value.trim();
+        var cat = document.getElementById('category').value;
+        var price = parseFloat(document.getElementById('price').value) || 0;
+        var stock = parseInt(document.getElementById('stock').value) || 0;
+        var status = document.getElementById('status').value;
+
+        if (!name) return;
+
+        var badgeClass = (status === 'low' || stock <= 10) ? 'status-low' : 'status-available';
+        var badgeLabel = (status === 'low' || stock <= 10) ? 'Low stock' : 'Available';
+        var rowStatus = (status === 'low' || stock <= 10) ? 'low' : 'available';
+
+        if (activeRow) {
+            // update existing
+            var cells = activeRow.querySelectorAll('td');
+            cells[0].textContent = name;
+            cells[1].textContent = cat;
+            cells[2].textContent = '₱' + price;
+            cells[3].textContent = stock;
+            cells[4].innerHTML = '<span class="status-badge ' + badgeClass + '">' + badgeLabel + '</span>';
+            activeRow.dataset.status = rowStatus;
+        } else {
+            // append new
+            var tbody = document.querySelector('#table tbody');
+            var tr = document.createElement('tr');
+            tr.dataset.status = rowStatus;
+            tr.innerHTML =
+                '<td class="fw-semibold">' + name + '</td>' +
+                '<td>' + cat + '</td>' +
+                '<td>₱' + price + '</td>' +
+                '<td>' + stock + '</td>' +
+                '<td><span class="status-badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
+                '<td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>';
+            tbody.appendChild(tr);
+            activeRow = tr;
+            bindEditButtons();
+        }
+
+        // feedback msg
+        var msg = document.getElementById('productMsg');
+        msg.classList.remove('d-none');
+        setTimeout(function () { msg.classList.add('d-none'); }, 2000);
+    });
+
+    // filter pills
     document.querySelectorAll('#pills .btn-pill').forEach(function (p) {
         p.addEventListener('click', function () {
             document.querySelectorAll('#pills .btn-pill').forEach(function (x) { x.classList.remove('active'); });
             p.classList.add('active');
+            var f = p.dataset.filter;
+            document.querySelectorAll('#table tbody tr').forEach(function (r) {
+                if (f === 'all') {
+                    r.style.display = '';
+                } else {
+                    r.style.display = (r.dataset.status === f) ? '' : 'none';
+                }
+            });
         });
     });
-    // Simple search
+
+    // simple search
     document.getElementById('search').addEventListener('input', function (e) {
         var q = e.target.value.toLowerCase();
         document.querySelectorAll('#table tbody tr').forEach(function (r) {

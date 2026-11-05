@@ -5,22 +5,26 @@ $pageSubtitle = 'Manage your account and preferences';
 $activePage   = 'settings';
 
 include 'includes/header.php';
+
+$profileName   = $currentUser;
+$profileRole   = $currentRole;
+$profileEmail  = strtolower($currentUser) . '@salestracker.ph';
+$profileLetter = strtoupper(substr($currentUser, 0, 1));
 ?>
 
-      <!-- ============ Profile card ============ -->
+      <!-- profile card -->
       <section class="ui-card profile-card">
-        <!-- Replace with the profile photo: <img src="assets/img/avatar.jpg" alt="" class="avatar avatar-lg"> -->
-        <div class="avatar avatar-lg avatar-placeholder">M</div>
+        <div class="avatar avatar-lg avatar-placeholder"><?= $profileLetter ?></div>
 
         <div class="profile-text">
-          <div class="profile-name">Macabante</div>
-          <div class="profile-meta">macabante@gmail.com · Owner</div>
+          <div class="profile-name"><?= $profileName ?></div>
+          <div class="profile-meta"><?= $profileEmail ?> · <?= $profileRole ?></div>
         </div>
 
         <button type="button" class="btn-ui btn-ui-outline">Change photo</button>
       </section>
 
-      <!-- ============ Account details ============ -->
+      <!-- account details -->
       <section class="ui-card">
         <div class="ui-card-header">
           <h2 class="ui-card-title">Account details</h2>
@@ -31,11 +35,11 @@ include 'includes/header.php';
           <div class="row g-3">
             <div class="col-md-6">
               <label for="fullName" class="field-label">Full name</label>
-              <input type="text" id="fullName" class="form-control ui-input" value="Macabante, Hendrickson">
+              <input type="text" id="fullName" class="form-control ui-input" value="<?= $profileName ?>">
             </div>
             <div class="col-md-6">
               <label for="email" class="field-label">Email address</label>
-              <input type="email" id="email" class="form-control ui-input" value="macabante@gmail.com">
+              <input type="email" id="email" class="form-control ui-input" value="<?= $profileEmail ?>">
             </div>
             <div class="col-md-6">
               <label for="company" class="field-label">Company</label>

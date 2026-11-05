@@ -165,27 +165,27 @@ The one admin account has `business_id` = NULL, and has two rows in `admin_busin
 
 ### Phase 1 — Foundation
 - [/] Set up project scaffold (frontend + backend + database)
-- [ ] Auth (login/register, admin role)
-- [ ] Database schema: Service, Product, Sale tables
+- [/] Auth (login/register, admin role)
+- [/] Database schema: Service, Product, Sale tables
 
 ### Phase 2 — Core CRUD
-- [ ] Admin dashboard: add/edit/delete Services
-- [ ] Admin dashboard: add/edit/delete Products
-- [ ] Sales entry form (select service or product, quantity, auto-calc total)
+- [/] Admin dashboard: add/edit/delete Services
+- [/] Admin dashboard: add/edit/delete Products
+- [/] Sales entry form (select service or product, quantity, auto-calc total)
 
 ### Phase 3 — Tracking & History
-- [ ] Sales history table with filters (date range, type)
-- [ ] Daily and monthly sales summary views
+- [/] Sales history table with filters (date range, type)
+- [/] Daily and monthly sales summary views
 
 ### Phase 4 — Analytics
-- [ ] Tabular analytics view
-- [ ] Monthly trend chart
-- [ ] Best-selling items ranking
-- [ ] Revenue breakdown (products vs services)
+- [/] Tabular analytics view
+- [/] Monthly trend chart
+- [/] Best-selling items ranking
+- [/] Revenue breakdown (products vs services)
 
 ### Phase 5 — Polish & SaaS Readiness
-- [ ] Multi-tenant support (if serving multiple businesses)
-- [ ] Role-based permissions (admin vs staff)
+- [/] Multi-tenant support (if serving multiple businesses)
+- [/] Role-based permissions (admin vs staff)
 - [ ] Responsive/mobile-friendly UI
 - [ ] Export analytics (CSV/PDF)
 - [ ] Deployment + monitoring

@@ -1,162 +1,323 @@
-/* 
-   stylesheet for sales
- */
-
+/* base styles */
 body {
     font-family: "Inter", system-ui, sans-serif;
     background: #ececec;
     color: #111;
+    margin: 0;
 }
 
-
-/*  1. Layout */
-.app {
-    /* --vh-px is set by the script in the HTML file; 900px is the fallback */
-    min-height: var(--vh-px, 900px);
+/* dashboard layout */
+body.dashboard-layout,
+body:has(.sidebar) {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    background: #ececec;
+    margin: 0;
 }
 
-.topbar {
+/* sidebar container */
+.sidebar {
+    width: 250px;
+    min-width: 250px;
+    flex-shrink: 0;
+    height: 100vh;
     position: sticky;
     top: 0;
-    z-index: 1020;
+    background: #000;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.15rem;
+    z-index: 1000;
+}
+
+/* sidebar logo */
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin-bottom: 2rem;
+    padding: 0 0.35rem;
+}
+
+.sidebar-logo .logo-sales {
+    color: #fff;
+}
+
+.sidebar-logo .logo-tracker {
+    color: #ff3b30;
+}
+
+/* sidebar nav */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex-grow: 1;
+}
+
+/* nav link */
+.nav-item-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.6rem 1rem;
-    border-bottom: 1px solid #d9d9d9;
-    background: #fff;
-}
-
-.content {
-    min-width: 0;
-    padding: 1.25rem 1rem 2rem;
-}
-
-
-/* 2. Sidebar */
-.sidebar {
-    background: #000;
-    color: #fff;
-    --bs-offcanvas-width: 270px;
-}
-
-.sidebar-inner {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    padding: 1.5rem 1.1rem;
-}
-
-.brand {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 800;
-    line-height: 1.1;
-}
-
-/* Sidebar links */
-.side-link {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.55rem 0.75rem;
+    padding: 0.65rem 0.85rem;
     border-radius: 10px;
-    color: #fff;
-    font-size: 0.8rem;
+    color: #a3a3a3;
     text-decoration: none;
-    transition: background 0.15s;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.15s ease-in-out;
 }
 
-.side-link i {
-    font-size: 0.95rem;
+.nav-item-link svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    opacity: 0.8;
 }
 
-.side-link:hover {
-    background: rgba(255, 255, 255, 0.12);
+.nav-item-link:hover {
     color: #fff;
+    background: rgba(255, 255, 255, 0.08);
 }
 
-.side-link.active,
-.side-link.active:focus,
-.side-link.active:focus-visible,
-.side-link.active:active {
-    background: #c9c9c9;
+.nav-item-link.active {
+    background: #fff;
     color: #111;
     font-weight: 600;
 }
 
-/* Remove every blue (text, glow, outline, tap flash) inside the sidebar */
-.sidebar *:focus,
-.sidebar *:focus-visible,
-.sidebar *:active {
-    outline: none;
-    box-shadow: none;
-    -webkit-tap-highlight-color: transparent;
+.nav-item-link.active svg {
+    stroke: #111;
+    opacity: 1;
 }
 
-.side-link:focus,
-.side-link:focus-visible,
-.side-link:active {
+/* sidebar user */
+.sidebar-user {
+    padding-top: 1.25rem;
+    border-top: 1px solid #222;
+    margin-top: auto;
+}
+
+.sidebar-user-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.sidebar-user-name {
+    font-size: 0.82rem;
+    font-weight: 600;
     color: #fff;
 }
 
-/* Signed-in user block */
-.user {
+.sidebar-user-role {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+/* main area */
+.main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #ececec;
+}
+
+/* topbar area */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 900;
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    padding-top: 1rem;
-    border-top: 1px solid #333;
+    justify-content: space-between;
+    padding: 1.1rem 2rem;
+    background: #fff;
+    border-bottom: 1px solid #d9d9d9;
+}
+
+.topbar-title {
+    margin: 0;
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #111;
+}
+
+.topbar-subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 0.82rem;
+    color: #666;
+}
+
+/* content area */
+.content {
+    flex: 1;
+    min-width: 0;
+    padding: 1.75rem 2rem 2.5rem;
+}
+
+/* ui cards */
+.card-box,
+.ui-card {
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 1.25rem;
+}
+
+.ui-card-body {
+    padding: 1.25rem;
+}
+
+.ui-card-header {
+    padding: 1.25rem 1.25rem 0.25rem;
+}
+
+.ui-card-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    color: #111;
+}
+
+.ui-card-subtitle {
+    font-size: 0.8rem;
+    color: #666;
+    margin: 0.25rem 0 0;
+}
+
+/* profile card */
+.profile-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem;
 }
 
 .avatar {
     display: grid;
     place-items: center;
-    flex: none;
+    flex-shrink: 0;
     width: 38px;
     height: 38px;
     border-radius: 50%;
     background: #fff;
     color: #000;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 700;
 }
 
-.user-name {
-    font-size: 0.75rem;
+.avatar-lg {
+    width: 58px;
+    height: 58px;
+    font-size: 1.35rem;
+}
+
+.avatar-placeholder {
+    background: #111;
+    color: #fff;
+}
+
+.avatar-blue {
+    background: #1e90e6;
+    color: #fff;
+}
+
+.profile-text {
+    flex-grow: 1;
+}
+
+.profile-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #111;
+}
+
+.profile-meta {
+    font-size: 0.82rem;
+    color: #666;
+    margin-top: 0.2rem;
+}
+
+/* ui buttons */
+.btn-ui {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
     font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
 }
 
-.user-role {
-    font-size: 0.65rem;
-    color: #9a9a9a;
-}
-
-
-/* 3. Page heading */
-.page-title {
-    margin: 0;
-    font-size: clamp(1.6rem, 4vw, 2.1rem);
-    font-weight: 800;
-}
-
-.page-sub {
-    margin: 0.25rem 0 1.25rem;
-    font-size: 0.8rem;
-    color: #6b6b6b;
-}
-
-
-/*  4. Cards */
-.card-box,
-.ui-card {
-    border-radius: 14px;
+.btn-ui-outline {
     background: #fff;
+    border-color: #d9d9d9;
+    color: #111;
 }
 
-.ui-card-body {
-    padding: 1.25rem;
+.btn-ui-outline:hover {
+    background: #f4f4f4;
+    border-color: #bbb;
+}
+
+.btn-ui-primary {
+    background: #000;
+    border-color: #000;
+    color: #fff;
+}
+
+.btn-ui-primary:hover {
+    background: #222;
+}
+
+/* preference rows */
+.pref-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #f0f0f0;
+}
+
+.pref-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #111;
+}
+
+.pref-desc {
+    font-size: 0.78rem;
+    color: #666;
+    margin-top: 0.15rem;
+}
+
+.form-check-input:checked {
+    background-color: #000;
+    border-color: #000;
+}
+
+/* save bar */
+.save-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 

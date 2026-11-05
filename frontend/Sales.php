@@ -6,11 +6,8 @@ $activePage   = 'sales-history';
 
 include 'includes/header.php';
 ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="style.css">
 
-<!-- Button for today, weeks, month -->
+<!-- range pills -->
 <section class="ui-card mb-3">
     <div class="ui-card-body">
 
@@ -143,5 +140,80 @@ include 'includes/header.php';
         <div id="emptyState" class="text-center text-muted py-4 d-none">No sales found for these filters.</div>
     </div>
 </section>
+
+<script>
+    // apply filters
+    function filterSales() {
+        var from = document.getElementById('dateFrom').value;
+        var to = document.getElementById('dateTo').value;
+        var type = document.getElementById('typeFilter').value;
+        var query = document.getElementById('search').value.toLowerCase().trim();
+
+        var visibleCount = 0;
+        var rows = document.querySelectorAll('#table tbody tr');
+
+        rows.forEach(function (r) {
+            var rDate = r.dataset.date;
+            var rType = r.dataset.type;
+            var rText = r.textContent.toLowerCase();
+
+            var dateMatch = true;
+            if (from && rDate < from) dateMatch = false;
+            if (to && rDate > to) dateMatch = false;
+
+            var typeMatch = (type === 'all' || rType === type);
+            var queryMatch = (!query || rText.indexOf(query) !== -1);
+
+            if (dateMatch && typeMatch && queryMatch) {
+                r.style.display = '';
+                visibleCount++;
+            } else {
+                r.style.display = 'none';
+            }
+        });
+
+        // update stats
+        var countEl = document.getElementById('recordCount');
+        if (countEl) countEl.textContent = visibleCount;
+
+        var empty = document.getElementById('emptyState');
+        if (empty) {
+            empty.classList.toggle('d-none', visibleCount > 0);
+        }
+    }
+
+    // pill clicks
+    document.querySelectorAll('#rangePills .btn-pill').forEach(function (p) {
+        p.addEventListener('click', function () {
+            document.querySelectorAll('#rangePills .btn-pill').forEach(function (x) { x.classList.remove('active'); });
+            p.classList.add('active');
+
+            var range = p.dataset.range;
+            var today = new Date().toISOString().split('T')[0];
+
+            if (range === 'today') {
+                document.getElementById('dateFrom').value = today;
+                document.getElementById('dateTo').value = today;
+            } else if (range === 'week') {
+                var d = new Date();
+                d.setDate(d.getDate() - 7);
+                document.getElementById('dateFrom').value = d.toISOString().split('T')[0];
+                document.getElementById('dateTo').value = today;
+            } else if (range === 'month') {
+                var d = new Date();
+                d.setDate(1);
+                document.getElementById('dateFrom').value = d.toISOString().split('T')[0];
+                document.getElementById('dateTo').value = today;
+            }
+            filterSales();
+        });
+    });
+
+    // filter events
+    document.getElementById('dateFrom').addEventListener('change', filterSales);
+    document.getElementById('dateTo').addEventListener('change', filterSales);
+    document.getElementById('typeFilter').addEventListener('change', filterSales);
+    document.getElementById('search').addEventListener('input', filterSales);
+</script>
 
 <?php include 'includes/footer.php'; ?>

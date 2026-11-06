@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +10,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body class="public-site">
+<body>
     <nav class="navbar sticky-top border-bottom" aria-label="Main navigation">
         <div class="container">
             <a class="navbar-brand brand d-flex align-items-center gap-2" href="#home"><span class="brand-icon"><i
@@ -54,7 +55,7 @@
                         <p>From your everyday essentials to your next big idea, find everything you need for school
                             right here.</p>
                         <div class="d-flex gap-2 mt-3"><a href="login.php" class="btn btn-dark btn-sm-pill">Login</a><a
-                                href="#supplies" class="btn btn-outline-secondary btn-sm-pill">Explore products</a>
+                                href="#supplies" class="btn btn-outline-secondary btn-sm-pill">Explore Features</a>
                         </div>
                         <div class="small-note mt-3">Everything you need for a successful school year.</div>
                     </div>
@@ -80,35 +81,68 @@
             <div class="container">
                 <h2>Features of Our Website</h2>
                 <p class="intro">Manage your products, sales, and business performance in one place.</p>
-                <div class="row g-3">
-                    <div class="col-6 col-lg-4">
-                        <article class="service-card"><i class="bi bi-speedometer2"></i>
-                            <h3>Dashboard</h3>
-                            <p>See an overview of your shop and its activity at a glance.</p>
+                <div class="row g-3 feature-grid">
+                    <div class="col-12 col-lg-6">
+                        <article class="service-card feature-primary">
+                            <div class="feature-label"><span></span> POS</div>
+                            <h3 class="feature-title">Fast checkout in just a few taps.</h3>
+                            <p>Record every sale without the hassle. Pick the product, enter the quantity, and the
+                                transaction is done.</p>
+                            <hr>
+                            <ul>
+                                <li>Easy to use, even on day one</li>
+                                <li>Every sale is recorded and easy to look up</li>
+                                <li>Connected to inventory, reports, and receipts</li>
+                            </ul>
                         </article>
                     </div>
-                    <div class="col-6 col-lg-4">
-                        <article class="service-card"><i class="bi bi-receipt"></i>
-                            <h3>Record Sales</h3>
-                            <p>Log each transaction and keep your sales history organized.</p>
+                    <div class="col-12 col-lg-6">
+                        <article class="service-card">
+                            <div class="feature-label"><span></span> INVENTORY</div>
+                            <h3 class="feature-title">Always know what’s left on the shelf.</h3>
+                            <p>Keep an eye on the stock of every item so you never run out and never overbuy.</p>
+                            <hr>
+                            <ul>
+                                <li>A list of all your products and prices</li>
+                                <li>See current stock at a glance</li>
+                                <li>Spot items that are running low</li>
+                            </ul>
                         </article>
                     </div>
-                    <div class="col-6 col-lg-4">
-                        <article class="service-card"><i class="bi bi-box-seam"></i>
-                            <h3>Products &amp; Services</h3>
-                            <p>Manage the products and services your shop offers.</p>
+                    <div class="col-12 col-lg-4">
+                        <article class="service-card">
+                            <div class="feature-label"><span></span> REPORTS</div>
+                            <h3 class="feature-title">See how your business is doing.</h3>
+                            <p>View your sales and profit by day, week, or month so decisions get easier.</p>
+                            <hr>
+                            <ul>
+                                <li>Daily, weekly, and monthly summaries</li>
+                                <li>Sales compared with expenses</li>
+                            </ul>
                         </article>
                     </div>
-                    <div class="col-6 col-lg-4">
-                        <article class="service-card"><i class="bi bi-graph-up-arrow"></i>
-                            <h3>Sales Analytics</h3>
-                            <p>Review sales trends and understand how your shop is performing.</p>
+                    <div class="col-12 col-lg-4">
+                        <article class="service-card">
+                            <div class="feature-label"><span></span> EXPENSES</div>
+                            <h3 class="feature-title">Keep tabs on every expense.</h3>
+                            <p>Log rent, utilities, supplies, and other costs so you know your real profit.</p>
+                            <hr>
+                            <ul>
+                                <li>Every expense has a date and a note</li>
+                                <li>See where your money goes</li>
+                            </ul>
                         </article>
                     </div>
-                    <div class="col-6 col-lg-4">
-                        <article class="service-card"><i class="bi bi-bar-chart-line"></i>
-                            <h3>Analytics</h3>
-                            <p>Use clear business insights to make informed shop decisions.</p>
+                    <div class="col-12 col-lg-4">
+                        <article class="service-card">
+                            <div class="feature-label"><span></span> RECEIPTS</div>
+                            <h3 class="feature-title">A receipt for every sale.</h3>
+                            <p>Give customers a receipt and keep your own copy for your records.</p>
+                            <hr>
+                            <ul>
+                                <li>A receipt right after each sale</li>
+                                <li>Easy to find past receipts</li>
+                            </ul>
                         </article>
                     </div>
                 </div>

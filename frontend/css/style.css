@@ -1,14 +1,12 @@
 /* base styles */
 body {
     font-family: "Inter", system-ui, sans-serif;
-<<<<<<< HEAD
-    background: #ececec;
+    <<<<<<< HEAD background: #ececec;
     color: #111;
     margin: 0;
-=======
-    background: var(--page-bg);
+    =======background: var(--page-bg);
     color: var(--ink);
->>>>>>> 5285334 (Update frontend UI)
+    >>>>>>>5285334 (Update frontend UI)
 }
 
 /* dashboard layout */
@@ -510,19 +508,19 @@ html {
     scroll-behavior: smooth
 }
 
-.public-site {
+body {
     margin: 0;
     color: var(--black);
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px
 }
 
-.public-site a {
+a {
     color: inherit;
     text-decoration: none
 }
 
-.public-site .container {
+.container {
     max-width: 1120px
 }
 
@@ -637,7 +635,7 @@ html {
     background: #f0f0ef
 }
 
-.public-site .btn-dark {
+.btn-dark {
     --bs-btn-bg: #080808;
     --bs-btn-border-color: #080808;
     --bs-btn-hover-bg: #333;
@@ -697,22 +695,22 @@ html {
     color: #fff
 }
 
-.public-site .stat {
+.stat {
     padding: 22px 12px;
     text-align: center;
     border-right: 1px solid #343434
 }
 
-.public-site .stat:last-child {
+.stat:last-child {
     border: 0
 }
 
-.public-site .stat strong {
+.stat strong {
     font-size: 26px;
     letter-spacing: -.04em
 }
 
-.public-site .stat span {
+.stat span {
     display: block;
     margin-top: 3px;
     color: #bbb;
@@ -750,6 +748,130 @@ html {
     border-radius: 9px;
     background: #fff;
     transition: transform .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease
+}
+
+/* Feature cards follow the two wide, three compact card layout. */
+.feature-grid>div {
+    display: flex;
+}
+
+.feature-grid .service-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 360px;
+    padding: 30px;
+    border-radius: 18px;
+}
+
+.feature-grid>div:nth-child(-n+2) .service-card {
+    min-height: 430px;
+}
+
+.feature-grid .feature-primary {
+    border-color: #eee;
+    background: #fff;
+    color: var(--black);
+}
+
+.feature-grid .feature-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    color: #42484b;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .16em;
+}
+
+.feature-grid .feature-label span {
+    width: 36px;
+    height: 1px;
+    background: currentColor;
+    opacity: .55;
+}
+
+.feature-grid .feature-title {
+    margin: 0 0 18px;
+    font-size: clamp(22px, 2.5vw, 30px);
+    line-height: 1.2;
+    letter-spacing: -.025em;
+}
+
+.feature-grid .service-card p {
+    font-size: 16px;
+    line-height: 1.55;
+}
+
+.feature-grid .service-card hr {
+    width: 100%;
+    margin: 24px 0 18px;
+    opacity: .12;
+}
+
+.feature-grid .service-card ul {
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+}
+
+.feature-grid .service-card li {
+    position: relative;
+    margin: 0 0 12px;
+    padding-left: 20px;
+    color: #555;
+    font-size: 15px;
+    line-height: 1.45;
+}
+
+.feature-grid .service-card li::before {
+    position: absolute;
+    left: 0;
+    top: .5em;
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: #48a99b;
+    content: "";
+}
+
+.feature-grid .feature-more {
+    margin-top: auto;
+    color: #388f84;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.feature-grid .feature-more span {
+    margin-left: 4px;
+}
+
+.feature-grid .service-card:hover {
+    transform: translateY(-6px);
+    background: #080808;
+    color: #fff;
+    border-color: #080808;
+    box-shadow: 0 10px 20px #00000018;
+    transition: transform .2s ease, background-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.feature-grid .service-card:hover p,
+.feature-grid .service-card:hover li,
+.feature-grid .service-card:hover .feature-label {
+    color: #e6e6e6;
+}
+
+.feature-grid .service-card:hover p {
+    color: #c8c8c8;
+}
+
+@media(max-width:991px) {
+
+    .feature-grid>div:nth-child(-n+2) .service-card,
+    .feature-grid .service-card {
+        min-height: 0;
+    }
 }
 
 .service-card:hover {
@@ -1040,6 +1162,7 @@ html {
     color: #fff !important
 }
 
+
 @media(max-width:767px) {
     .hero {
         padding: 60px 0
@@ -1056,8 +1179,10 @@ html {
     .section {
         padding: 42px 0
     }
-<<<<<<< HEAD
+
+    <<<<<<< HEAD
 }
+
 =======
 }
 
@@ -1074,4 +1199,5 @@ html {
     color: #fff;
     font-weight: 600;
 }
->>>>>>> 5285334 (Update frontend UI)
+
+>>>>>>>5285334 (Update frontend UI)

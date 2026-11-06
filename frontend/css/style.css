@@ -1,9 +1,14 @@
 /* base styles */
 body {
     font-family: "Inter", system-ui, sans-serif;
+<<<<<<< HEAD
     background: #ececec;
     color: #111;
     margin: 0;
+=======
+    background: var(--page-bg);
+    color: var(--ink);
+>>>>>>> 5285334 (Update frontend UI)
 }
 
 /* dashboard layout */
@@ -505,19 +510,19 @@ html {
     scroll-behavior: smooth
 }
 
-body {
+.public-site {
     margin: 0;
     color: var(--black);
     font-family: Arial, Helvetica, sans-serif;
     font-size: 14px
 }
 
-a {
+.public-site a {
     color: inherit;
     text-decoration: none
 }
 
-.container {
+.public-site .container {
     max-width: 1120px
 }
 
@@ -632,7 +637,7 @@ a {
     background: #f0f0ef
 }
 
-.btn-dark {
+.public-site .btn-dark {
     --bs-btn-bg: #080808;
     --bs-btn-border-color: #080808;
     --bs-btn-hover-bg: #333;
@@ -692,22 +697,22 @@ a {
     color: #fff
 }
 
-.stat {
+.public-site .stat {
     padding: 22px 12px;
     text-align: center;
     border-right: 1px solid #343434
 }
 
-.stat:last-child {
+.public-site .stat:last-child {
     border: 0
 }
 
-.stat strong {
+.public-site .stat strong {
     font-size: 26px;
     letter-spacing: -.04em
 }
 
-.stat span {
+.public-site .stat span {
     display: block;
     margin-top: 3px;
     color: #bbb;
@@ -1040,15 +1045,33 @@ a {
         padding: 60px 0
     }
 
-    .stat {
+    .public-site .stat {
         padding: 15px 5px
     }
 
-    .stat strong {
+    .public-site .stat strong {
         font-size: 21px
     }
 
     .section {
         padding: 42px 0
     }
+<<<<<<< HEAD
 }
+=======
+}
+
+.avatar-lg {
+    width: 56px;
+    height: 56px;
+    font-size: 18px;
+}
+
+.avatar-placeholder {
+    display: grid;
+    place-items: center;
+    background: #2b2b2b;
+    color: #fff;
+    font-weight: 600;
+}
+>>>>>>> 5285334 (Update frontend UI)

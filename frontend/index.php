@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,7 +9,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+<body class="public-site">
     <nav class="navbar sticky-top border-bottom" aria-label="Main navigation">
         <div class="container">
             <a class="navbar-brand brand d-flex align-items-center gap-2" href="#home"><span class="brand-icon"><i

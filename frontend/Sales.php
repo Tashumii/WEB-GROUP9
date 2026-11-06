@@ -2,12 +2,16 @@
 
 $pageTitle    = 'Sales history';
 $pageSubtitle = 'Every recorded sale, with quantity, unit price and total';
-$activePage   = 'sales-history';
+$activePage   = 'sales';
 
 include 'includes/header.php';
 ?>
+<<<<<<< HEAD
 
 <!-- range pills -->
+=======
+<!-- Button for today, weeks, month -->
+>>>>>>> 5285334 (Update frontend UI)
 <section class="ui-card mb-3">
     <div class="ui-card-body">
 

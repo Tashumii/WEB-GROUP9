@@ -1,16 +1,29 @@
 <?php
 
 $pageTitle    = 'Products & Services';
+<<<<<<< HEAD
 $pageSubtitle = 'Manage products, stock quantity, prices and availability';
+=======
+$pageSubtitle = 'Manage your products, services, prices, and availability';
+>>>>>>> 5285334 (Update frontend UI)
 $activePage   = 'products';
 
 include 'includes/header.php';
 ?>
 
+<<<<<<< HEAD
 <!-- action button -->
 <div class="d-flex justify-content-end gap-2 mb-3">
     <button type="button" class="btn btn-pill active" id="addProductBtn">
+=======
+<!-- This is for Actions -->
+<div class="d-flex justify-content-end gap-2 mb-3">
+    <button type="button" class="btn btn-pill active">
+>>>>>>> 5285334 (Update frontend UI)
         <i class="bi bi-plus"></i> Add product
+    </button>
+    <button type="button" class="btn btn-pill">
+        <i class="bi bi-plus"></i> Add service
     </button>
 </div>
 
@@ -18,23 +31,37 @@ include 'includes/header.php';
 <section class="row g-3 mb-3">
     <div class="col-12 col-md-4">
         <div class="ui-card stat">
+<<<<<<< HEAD
             <div class="stat-label">Products revenue - October</div>
             <div class="stat-value">₱102,992</div>
+=======
+            <div class="stat-label">Product revenue - September</div>
+            <div class="stat-value">₱103,124</div>
+>>>>>>> 5285334 (Update frontend UI)
             <div class="stat-note">62% of all revenue</div>
         </div>
     </div>
     <div class="col-6 col-md-4">
         <div class="ui-card stat">
             <div class="stat-label">Active products</div>
+<<<<<<< HEAD
             <div class="stat-value">6</div>
             <div class="stat-note">2 low stock</div>
+=======
+            <div class="stat-value">4</div>
+            <div class="stat-note">2 marked low stock</div>
+>>>>>>> 5285334 (Update frontend UI)
         </div>
     </div>
     <div class="col-6 col-md-4">
         <div class="ui-card stat">
             <div class="stat-label">Top product</div>
             <div class="stat-value">A4 paper</div>
+<<<<<<< HEAD
             <div class="stat-note">₱102,600 in October</div>
+=======
+            <div class="stat-note">₱31,400 in September</div>
+>>>>>>> 5285334 (Update frontend UI)
         </div>
     </div>
 </section>
@@ -50,7 +77,11 @@ include 'includes/header.php';
                     <!-- page tabs -->
                     <div class="d-flex gap-2" id="tabs">
                         <button type="button" class="btn btn-pill active">Products</button>
+<<<<<<< HEAD
                         <a href="Services.php" class="btn btn-pill">Services</a>
+=======
+                        <button type="button" class="btn btn-pill">Services</button>
+>>>>>>> 5285334 (Update frontend UI)
                     </div>
                     <div class="input-group ms-md-auto" style="max-width:280px;">
                         <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
@@ -61,9 +92,15 @@ include 'includes/header.php';
 
                 <!-- status pills -->
                 <div class="d-flex flex-wrap gap-2 mb-3" id="pills">
+<<<<<<< HEAD
                     <button type="button" class="btn btn-pill active" data-filter="all">All</button>
                     <button type="button" class="btn btn-pill" data-filter="available">Available</button>
                     <button type="button" class="btn btn-pill" data-filter="low">Low stock</button>
+=======
+                    <button type="button" class="btn btn-pill active">All - 4</button>
+                    <button type="button" class="btn btn-pill">Available - 2</button>
+                    <button type="button" class="btn btn-pill">Low stock - 2</button>
+>>>>>>> 5285334 (Update frontend UI)
                 </div>
 
                 <div class="table-responsive">
@@ -125,6 +162,7 @@ include 'includes/header.php';
             <div class="ui-card-body">
                 <form id="productForm" onsubmit="return false">
                     <div class="mb-3">
+<<<<<<< HEAD
                         <label for="productName" class="field-label">Product name</label>
                         <input type="text" id="productName" class="form-control ui-input" value="Ballpen black" required>
                     </div>
@@ -137,30 +175,52 @@ include 'includes/header.php';
                             <option>Art supplies</option>
                             <option>Office</option>
                         </select>
+=======
+                        <label for="serviceName" class="field-label">Product name</label>
+                        <input type="text" id="serviceName" class="form-control ui-input" value="Ballpen black">
+>>>>>>> 5285334 (Update frontend UI)
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label for="price" class="field-label">Price (₱)</label>
+<<<<<<< HEAD
                             <input type="number" id="price" class="form-control ui-input" value="8.00" step="0.01" min="0" required>
                         </div>
                         <div class="col-6">
                             <label for="stock" class="field-label">Stock qty</label>
                             <input type="number" id="stock" class="form-control ui-input" value="14" min="0" required>
+=======
+                            <input type="number" id="price" class="form-control ui-input" value="8.00" step="0.01">
+                        </div>
+                        <div class="col-7">
+                            <label for="chargedPer" class="field-label">Category</label>
+                            <select id="chargedPer" class="form-select ui-input">
+                                <option selected>Writing</option>
+                                <option>Paper</option>
+                                <option>Art supplies</option>
+                            </select>
+>>>>>>> 5285334 (Update frontend UI)
                         </div>
                     </div>
 
                     <div class="mb-3">
+<<<<<<< HEAD
                         <label for="status" class="field-label">Status</label>
                         <select id="status" class="form-select ui-input">
                             <option value="available" selected>Available</option>
                             <option value="low">Low stock</option>
                             <option value="inactive">Inactive</option>
                         </select>
+=======
+                        <label for="stockQuantity" class="field-label">Stock quantity</label>
+                        <input type="number" id="stockQuantity" class="form-control ui-input" value="14" min="0">
+>>>>>>> 5285334 (Update frontend UI)
                     </div>
 
                     <div class="info-box mb-3">
                         <i class="bi bi-info-square-fill"></i>
+<<<<<<< HEAD
                         <span>Physical products track live inventory. Stock is deducted automatically upon every sale recorded.</span>
                     </div>
 
@@ -171,6 +231,14 @@ include 'includes/header.php';
 
                     <div id="productMsg" class="text-success text-center mt-2 d-none" style="font-size:0.8rem;">
                         Product updated!
+=======
+                        <span>Keep product names, prices, and stock quantities up to date for your inventory.</span>
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-pill active">Save product</button>
+                        <button type="button" class="btn btn-pill">Cancel</button>
+>>>>>>> 5285334 (Update frontend UI)
                     </div>
                 </form>
             </div>

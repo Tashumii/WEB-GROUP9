@@ -1,0 +1,12 @@
+# block sensitive files
+<IfModule php_module>
+    php_flag expose_php Off
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+</IfModule>
+
+<FilesMatch "^(\.env|.*\.sql|\.htaccess)$">
+    Require all denied
+</FilesMatch>

@@ -52,7 +52,7 @@ if ($method === 'GET') {
             }, $services)
         ]);
     } catch (Exception $e) {
-        jsonError($e->getMessage(), 500);
+        jsonDbError($e);
     }
 }
 
@@ -73,6 +73,10 @@ if ($method === 'POST') {
         jsonError('No sale items provided');
     }
 
+    if (count($items) > 100) {
+        jsonError('Too many items in a single sale');
+    }
+
     // begin transaction
     $pdo->beginTransaction();
     $insertedSales = [];
@@ -82,7 +86,7 @@ if ($method === 'POST') {
         // prepare statements
         $checkProduct = $pdo->prepare("SELECT id, name, price, stock_qty, status FROM products WHERE id = ? AND business_id = ?");
         $checkService = $pdo->prepare("SELECT id, name, price, status FROM services WHERE id = ? AND business_id = ?");
-        $deductStock = $pdo->prepare("UPDATE products SET stock_qty = stock_qty - ? WHERE id = ? AND business_id = ?");
+        $deductStock = $pdo->prepare("UPDATE products SET stock_qty = stock_qty - ? WHERE id = ? AND business_id = ? AND stock_qty >= ?");
         $insertSale = $pdo->prepare("
             INSERT INTO sales (business_id, recorded_by, item_type, item_id, quantity, unit_price, total, sold_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
@@ -91,10 +95,18 @@ if ($method === 'POST') {
         foreach ($items as $item) {
             $type = strtolower(trim($item['item_type'] ?? $item['type'] ?? ''));
             $itemId = (int)($item['item_id'] ?? $item['id'] ?? 0);
-            $qty = max(1, (int)($item['quantity'] ?? $item['qty'] ?? 1));
+            $qty = (int)($item['quantity'] ?? $item['qty'] ?? 1);
 
             if (!in_array($type, ['product', 'service'], true)) {
                 throw new Exception("Invalid item type for item {$itemId}");
+            }
+
+            if ($itemId <= 0) {
+                throw new Exception('Invalid item ID');
+            }
+
+            if ($qty < 1 || $qty > 100000) {
+                throw new Exception('Quantity must be between 1 and 100000');
             }
 
             $unitPrice = 0.0;
@@ -114,11 +126,14 @@ if ($method === 'POST') {
                     throw new Exception("Insufficient stock for {$prod['name']} (Available: {$prod['stock_qty']})");
                 }
 
-                $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : (float)$prod['price'];
+                $unitPrice = (float)$prod['price'];
                 $itemName = $prod['name'];
 
-                // update stock
-                $deductStock->execute([$qty, $itemId, $businessId]);
+                // update stock atomically
+                $deductStock->execute([$qty, $itemId, $businessId, $qty]);
+                if ($deductStock->rowCount() < 1) {
+                    throw new Exception("Insufficient stock for {$prod['name']}");
+                }
             }
 
             // validate service
@@ -132,7 +147,7 @@ if ($method === 'POST') {
                     throw new Exception("Service {$serv['name']} is inactive");
                 }
 
-                $unitPrice = isset($item['unit_price']) ? (float)$item['unit_price'] : (float)$serv['price'];
+                $unitPrice = (float)$serv['price'];
                 $itemName = $serv['name'];
             }
 
@@ -167,6 +182,11 @@ if ($method === 'POST') {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
+
+        if ($e instanceof PDOException) {
+            jsonDbError($e);
+        }
+
         jsonError($e->getMessage(), 400);
     }
 }

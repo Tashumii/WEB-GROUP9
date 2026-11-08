@@ -3,8 +3,13 @@
 require_once __DIR__ . '/connectdb.php';
 
 // request method
-$method = $_SERVER['REQUEST_METHOD'];
+$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
 $businessId = getActiveBusinessId($pdo);
+
+// editing and deleting are owner/admin only; any member may add
+if (in_array($method, ['PUT', 'DELETE'], true)) {
+    requireAdmin($pdo);
+}
 
 // fetch products
 if ($method === 'GET') {
@@ -20,8 +25,8 @@ if ($method === 'GET') {
         // search filter
         if ($search !== '') {
             $sql .= " AND (name LIKE ? OR category LIKE ?)";
-            $params[] = "%{$search}%";
-            $params[] = "%{$search}%";
+            $params[] = "%" . like_escape($search) . "%";
+            $params[] = "%" . like_escape($search) . "%";
         }
 
         // category filter
@@ -90,7 +95,7 @@ if ($method === 'GET') {
         $topStmt = $pdo->prepare("
             SELECT p.name, SUM(s.total) AS total_revenue
             FROM sales s
-            JOIN products p ON s.item_id = p.id
+            JOIN products p ON s.item_id = p.id AND p.business_id = s.business_id
             WHERE s.business_id = ? AND s.item_type = 'product'
             GROUP BY p.id, p.name
             ORDER BY total_revenue DESC
@@ -98,6 +103,15 @@ if ($method === 'GET') {
         ");
         $topStmt->execute([$businessId]);
         $topProduct = $topStmt->fetch();
+
+        // products revenue
+        $revStmt = $pdo->prepare("
+            SELECT COALESCE(SUM(total), 0) AS revenue
+            FROM sales
+            WHERE business_id = ? AND item_type = 'product'
+        ");
+        $revStmt->execute([$businessId]);
+        $rev = $revStmt->fetch();
 
         jsonResponse([
             'success' => true,
@@ -108,13 +122,14 @@ if ($method === 'GET') {
                 'low_stock' => (int)($counts['low_stock'] ?? 0),
                 'unavailable' => (int)($counts['unavailable'] ?? 0),
             ],
+            'revenue' => (float)($rev['revenue'] ?? 0),
             'top_product' => $topProduct ? [
                 'name' => $topProduct['name'],
                 'revenue' => (float)$topProduct['total_revenue']
             ] : null
         ]);
     } catch (Exception $e) {
-        jsonError($e->getMessage(), 500);
+        jsonDbError($e);
     }
 }
 
@@ -123,8 +138,12 @@ if ($method === 'POST') {
     $body = getJsonBody();
     $action = $body['action'] ?? 'create';
 
+    if ($action !== 'create') {
+        requireAdmin($pdo);
+    }
+
     // update action
-    if ($action === 'update' || isset($body['id']) && $action !== 'create') {
+    if ($action === 'update') {
         $id = (int)($body['id'] ?? 0);
         if ($id <= 0) jsonError('Product ID required');
 
@@ -132,9 +151,22 @@ if ($method === 'POST') {
         $category = trim($body['category'] ?? 'General');
         $price = (float)($body['price'] ?? 0);
         $stock = (int)($body['stock'] ?? $body['stock_qty'] ?? 0);
-        $status = in_array($body['status'] ?? '', ['active', 'inactive']) ? $body['status'] : 'active';
+        $status = in_array($body['status'] ?? '', ['active', 'inactive'], true) ? $body['status'] : 'active';
+
+        if ($name === '' || $price < 0 || $stock < 0) {
+            jsonError('Valid product name, price and stock are required');
+        }
+        if (strlen($name) > 255) jsonError('Product name is too long');
+        if (strlen($category) > 100) jsonError('Category is too long');
+        $category = $category === '' ? 'General' : $category;
 
         try {
+            $check = $pdo->prepare("SELECT id FROM products WHERE id = ? AND business_id = ?");
+            $check->execute([$id, $businessId]);
+            if (!$check->fetch()) {
+                jsonError('Product not found', 404);
+            }
+
             $stmt = $pdo->prepare("
                 UPDATE products 
                 SET name = ?, category = ?, price = ?, stock_qty = ?, status = ?
@@ -143,7 +175,7 @@ if ($method === 'POST') {
             $stmt->execute([$name, $category, $price, $stock, $status, $id, $businessId]);
             jsonResponse(['success' => true, 'message' => 'Product updated']);
         } catch (Exception $e) {
-            jsonError($e->getMessage(), 500);
+            jsonDbError($e);
         }
     }
 
@@ -153,12 +185,28 @@ if ($method === 'POST') {
         if ($id <= 0) jsonError('Product ID required');
 
         try {
+            $check = $pdo->prepare("SELECT id FROM products WHERE id = ? AND business_id = ?");
+            $check->execute([$id, $businessId]);
+            if (!$check->fetch()) {
+                jsonError('Product not found', 404);
+            }
+
+            $saleCheck = $pdo->prepare("SELECT COUNT(*) FROM sales WHERE business_id = ? AND item_type = 'product' AND item_id = ?");
+            $saleCheck->execute([$businessId, $id]);
+            if ((int)$saleCheck->fetchColumn() > 0) {
+                jsonError('Cannot delete a product with sales history. Set it to inactive instead.', 409);
+            }
+
             $stmt = $pdo->prepare("DELETE FROM products WHERE id = ? AND business_id = ?");
             $stmt->execute([$id, $businessId]);
             jsonResponse(['success' => true, 'message' => 'Product deleted']);
         } catch (Exception $e) {
-            jsonError($e->getMessage(), 500);
+            jsonDbError($e);
         }
+    }
+
+    if ($action !== 'create') {
+        jsonError('Unknown action');
     }
 
     // add product
@@ -166,11 +214,14 @@ if ($method === 'POST') {
     $category = trim($body['category'] ?? 'General');
     $price = (float)($body['price'] ?? 0);
     $stock = (int)($body['stock'] ?? $body['stock_qty'] ?? 0);
-    $status = in_array($body['status'] ?? '', ['active', 'inactive']) ? $body['status'] : 'active';
+    $status = in_array($body['status'] ?? '', ['active', 'inactive'], true) ? $body['status'] : 'active';
 
-    if ($name === '' || $price < 0) {
-        jsonError('Valid product name and price are required');
+    if ($name === '' || $price < 0 || $stock < 0) {
+        jsonError('Valid product name, price and stock are required');
     }
+    if (strlen($name) > 255) jsonError('Product name is too long');
+    if (strlen($category) > 100) jsonError('Category is too long');
+    $category = $category === '' ? 'General' : $category;
 
     try {
         $stmt = $pdo->prepare("
@@ -186,7 +237,7 @@ if ($method === 'POST') {
             'product_id' => $newId
         ], 201);
     } catch (Exception $e) {
-        jsonError($e->getMessage(), 500);
+        jsonDbError($e);
     }
 }
 
@@ -200,9 +251,22 @@ if ($method === 'PUT') {
     $category = trim($body['category'] ?? 'General');
     $price = (float)($body['price'] ?? 0);
     $stock = (int)($body['stock'] ?? $body['stock_qty'] ?? 0);
-    $status = in_array($body['status'] ?? '', ['active', 'inactive']) ? $body['status'] : 'active';
+    $status = in_array($body['status'] ?? '', ['active', 'inactive'], true) ? $body['status'] : 'active';
+
+    if ($name === '' || $price < 0 || $stock < 0) {
+        jsonError('Valid product name, price and stock are required');
+    }
+    if (strlen($name) > 255) jsonError('Product name is too long');
+    if (strlen($category) > 100) jsonError('Category is too long');
+    $category = $category === '' ? 'General' : $category;
 
     try {
+        $check = $pdo->prepare("SELECT id FROM products WHERE id = ? AND business_id = ?");
+        $check->execute([$id, $businessId]);
+        if (!$check->fetch()) {
+            jsonError('Product not found', 404);
+        }
+
         $stmt = $pdo->prepare("
             UPDATE products 
             SET name = ?, category = ?, price = ?, stock_qty = ?, status = ?
@@ -211,7 +275,7 @@ if ($method === 'PUT') {
         $stmt->execute([$name, $category, $price, $stock, $status, $id, $businessId]);
         jsonResponse(['success' => true, 'message' => 'Product updated']);
     } catch (Exception $e) {
-        jsonError($e->getMessage(), 500);
+        jsonDbError($e);
     }
 }
 
@@ -225,11 +289,23 @@ if ($method === 'DELETE') {
     if ($id <= 0) jsonError('Product ID required');
 
     try {
+        $check = $pdo->prepare("SELECT id FROM products WHERE id = ? AND business_id = ?");
+        $check->execute([$id, $businessId]);
+        if (!$check->fetch()) {
+            jsonError('Product not found', 404);
+        }
+
+        $saleCheck = $pdo->prepare("SELECT COUNT(*) FROM sales WHERE business_id = ? AND item_type = 'product' AND item_id = ?");
+        $saleCheck->execute([$businessId, $id]);
+        if ((int)$saleCheck->fetchColumn() > 0) {
+            jsonError('Cannot delete a product with sales history. Set it to inactive instead.', 409);
+        }
+
         $stmt = $pdo->prepare("DELETE FROM products WHERE id = ? AND business_id = ?");
         $stmt->execute([$id, $businessId]);
         jsonResponse(['success' => true, 'message' => 'Product deleted']);
     } catch (Exception $e) {
-        jsonError($e->getMessage(), 500);
+        jsonDbError($e);
     }
 }
 

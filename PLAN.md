@@ -29,18 +29,19 @@ School Supplies Tracker is a multi-tenant SaaS web app that lets business owners
 ### 2.2 Services Page
 - List of offered services (e.g., Soft Binding, Spiral Binding, Lamination, Printing)
 - Each service has: name, description, price, status (active/inactive)
-- Configurable by admin (add/edit/delete/disable)
+- Any member can add; edit/delete/disable is owner/admin only.
 
 ### 2.3 Products Page
 - List of physical products (e.g., Pencil, Ballpen, Notebook, Bond Paper)
 - Each product has: name, SKU (optional), price, stock quantity (optional), status
-- Configurable by admin (add/edit/delete/disable)
+- Any member can add; edit/delete/disable is owner/admin only.
 
 ### 2.4 Admin Dashboard
 - Central panel to configure services and products (CRUD), per business
 - Manage pricing changes
-- Business switcher: admin can view "School Supplies near at BSU," "School Supplies near at Caltex," or a **combined comparison view** of both
-- Staff accounts are scoped to one business each — a BSU staff account never sees Caltex data, and vice versa
+- Business switcher: any member who belongs to more than one business can switch their active business
+- Roles are per business: **owner** (full control, including team management), **admin** (catalog and sales management), and **staff** (record sales, view data, and add catalog items)
+- A BSU staff account never sees Caltex data unless it is explicitly added to Caltex, and vice versa
 - Overview widgets (today's sales, top-selling items, low stock alerts if stock is tracked)
 
 ### 2.5 Analytics
@@ -48,7 +49,7 @@ School Supplies Tracker is a multi-tenant SaaS web app that lets business owners
 - Monthly sales trend (chart)
 - Best-selling products/services (chart or ranked table)
 - Revenue breakdown: products vs. services
-- **Business comparison view (admin only):** side-by-side sales/revenue for BSU vs. Caltex
+- **Business comparison view:** side-by-side sales/revenue for every business the signed-in account belongs to
 - Export analytics (CSV/PDF) — optional/future
 
 ---
@@ -69,7 +70,7 @@ School Supplies Tracker is a multi-tenant SaaS web app that lets business owners
 
 ## 4. Data Model
 
-Multi-tenant schema: every table (except `businesses`) is scoped to a `business_id`, so multiple businesses can use the same SaaS instance with isolated data.
+Multi-tenant schema: catalog and sales tables are scoped to a `business_id`, while users join businesses through `memberships`. Each membership carries its own role, so one account can be an owner of one business and staff in another.
 
 ### businesses
 | Column | Type | Notes |
@@ -82,25 +83,25 @@ Multi-tenant schema: every table (except `businesses`) is scoped to a `business_
 | Column | Type | Notes |
 |---|---|---|
 | id | INT, auto-increment | Primary key |
-| business_id | INT, **nullable** | Required for staff (their one assigned business); **NULL for admin** — admin's businesses come from `admin_businesses` instead |
-| username | VARCHAR(100) | Unique, required |
+| username | VARCHAR(50) | Unique, required |
 | password_hash | VARCHAR(255) | Store hashed passwords only, never plain text |
-| role | ENUM('admin', 'staff') | Defaults to 'staff' |
+| is_active | TINYINT(1) | Inactive accounts cannot sign in |
+| must_change_password | TINYINT(1) | Set after an owner resets a temporary password |
+| last_login_at | TIMESTAMP, nullable | Updated on successful sign-in |
+| created_at / updated_at | TIMESTAMP | Audit timestamps |
 
-### admin_businesses (join table — links one admin to multiple businesses)
+### memberships (links users to businesses, with a role per business)
 | Column | Type | Notes |
 |---|---|---|
 | id | INT, auto-increment | Primary key |
-| user_id | INT | Foreign key → users.id (must be a user with role 'admin') |
+| user_id | INT | Foreign key → users.id |
 | business_id | INT | Foreign key → businesses.id |
+| role | ENUM('owner', 'admin', 'staff') | Role inside this business only |
+| is_active | TINYINT(1) | Soft-removes access without deleting history |
+| created_by | INT, nullable | Owner who added the member |
+| created_at | TIMESTAMP | Defaults to current time |
 
-**Example setup:**
-| Business | Staff |
-|---|---|
-| "School Supplies near at BSU" | Staff account(s) with `business_id` = BSU's id |
-| "School Supplies near at Caltex" | Staff account(s) with `business_id` = Caltex's id |
-
-The one admin account has `business_id` = NULL, and has two rows in `admin_businesses` — one linking to BSU, one linking to Caltex.
+Fresh installs contain no accounts. Registering creates only the account; the user then creates their first business and becomes its owner. Each business must keep at least one owner. Owners can add admins and staff, reset staff/admin passwords, and remove members. Owners cannot change or remove the owner role, and cannot reset passwords for accounts that belong to multiple businesses (those members must change their own password).
 
 ### products
 | Column | Type | Notes |
@@ -135,9 +136,9 @@ The one admin account has `business_id` = NULL, and has two rows in `admin_busin
 | sold_at | TIMESTAMP | Defaults to current time |
 
 **Guide notes:**
-- Every table except `businesses` needs a `business_id` foreign key back to `businesses.id` — this is what keeps each business's data separate (multi-tenancy).
-- **Access model:** staff accounts are locked to one business via `users.business_id`. The admin account has `business_id` = NULL and instead is linked to multiple businesses through `admin_businesses`. When the admin logs in, look up all their linked `business_id`s from that table to decide what they can view.
-- **Comparison view:** since every `sales` row carries a `business_id`, the admin dashboard can query and group sales by `business_id` to show Business A vs. Business B side by side (e.g., "BSU sales this month" vs. "Caltex sales this month").
+- Catalog and sales tables carry a `business_id` foreign key back to `businesses.id`; this is what keeps each business's data separate (multi-tenancy).
+- **Access model:** every authorization check resolves the signed-in user's role from `memberships` for the active business. The active business is stored in the session and is never accepted from a query string or request header.
+- **Comparison view:** since every `sales` row carries a `business_id`, the analytics endpoint can group sales by `business_id` for the businesses the account belongs to.
 - `sales.item_id` is a polymorphic reference: depending on `item_type`, it points to either `products.id` or `services.id`. MySQL can't enforce this with a single foreign key, so validate `item_id` exists in the correct table at the application layer (in the PHP endpoint) before inserting a sale.
 - Always store `unit_price` and `total` on the sale record itself, not just a reference to the product/service — this way, if prices change later, past sales still reflect what was actually charged.
 - Add indexes on every `business_id` column and on `sales.sold_at` — these will be queried constantly for filtering and analytics.
@@ -151,7 +152,7 @@ The one admin account has `business_id` = NULL, and has two rows in `admin_busin
 - **Backend:** PHP with AJAX (asynchronous requests to PHP endpoints, no full page reloads)
 - **Database:** MySQL/MariaDB (natural pairing with PHP, well-suited to relational sales data)
 - **Charts:** Chart.js (lightweight, works well with vanilla JS + AJAX-fetched data)
-- **Auth:** PHP sessions, with role-based access (admin/staff)
+- **Auth:** PHP sessions with per-business role-based access (owner/admin/staff), CSRF tokens, login rate limiting, and tenant isolation
 
 ### Notes on PHP/AJAX architecture
 - Structure backend as PHP endpoints (e.g., `/api/sales.php`, `/api/products.php`, `/api/services.php`) returning JSON
@@ -165,7 +166,7 @@ The one admin account has `business_id` = NULL, and has two rows in `admin_busin
 
 ### Phase 1 — Foundation
 - [/] Set up project scaffold (frontend + backend + database)
-- [/] Auth (login/register, admin role)
+- [/] Auth (account registration, login, first-business setup, per-business roles)
 - [/] Database schema: Service, Product, Sale tables
 
 ### Phase 2 — Core CRUD
@@ -184,9 +185,10 @@ The one admin account has `business_id` = NULL, and has two rows in `admin_busin
 - [/] Revenue breakdown (products vs services)
 
 ### Phase 5 — Polish & SaaS Readiness
-- [/] Multi-tenant support (if serving multiple businesses)
-- [/] Role-based permissions (admin vs staff)
-- [ ] Responsive/mobile-friendly UI
+- [/] Multi-tenant support with per-business isolation
+- [/] Per-business roles (owner/admin/staff) and owner-only team management
+- [/] Security hardening (CSRF, rate limiting, session policy, security headers)
+- [/] Responsive/mobile-friendly UI
 - [ ] Export analytics (CSV/PDF)
 - [ ] Deployment + monitoring
 

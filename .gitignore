@@ -1,19 +1,30 @@
-# Virtual environment
+
 .venv/
 venv/
 ENV/
 env/
 
-# Python cache
+
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Environment variables
 .env
 
-# OS / Editor files
+
 .DS_Store
 Thumbs.db
 .vscode/
 
+.playwright-cli/
+
+
+.agents/
+.claude/
+agent/
+.taste-skill/
+.playwright/
+
+
+*.log
+*.sqlite

@@ -15,6 +15,17 @@ if ($method === 'GET') {
         $type = strtolower(trim($_GET['type'] ?? 'all'));
         $search = trim($_GET['search'] ?? $_GET['q'] ?? '');
 
+        // validate dates
+        if ($dateFrom !== '' && !isValidDateString($dateFrom)) {
+            jsonError('Invalid date_from format');
+        }
+        if ($dateTo !== '' && !isValidDateString($dateTo)) {
+            jsonError('Invalid date_to format');
+        }
+        if ($dateFrom !== '' && $dateTo !== '' && $dateFrom > $dateTo) {
+            jsonError('date_from cannot be after date_to');
+        }
+
         // date conditions
         $where = ["s.business_id = ?"];
         $params = [$businessId];
@@ -63,8 +74,8 @@ if ($method === 'GET') {
                     ELSE 'Unknown'
                 END AS item_name
             FROM sales s
-            LEFT JOIN products p ON s.item_type = 'product' AND s.item_id = p.id
-            LEFT JOIN services sv ON s.item_type = 'service' AND s.item_id = sv.id
+            LEFT JOIN products p ON s.item_type = 'product' AND s.item_id = p.id AND p.business_id = s.business_id
+            LEFT JOIN services sv ON s.item_type = 'service' AND s.item_id = sv.id AND sv.business_id = s.business_id
             WHERE {$whereClause}
         ";
 
@@ -74,11 +85,11 @@ if ($method === 'GET') {
                 (s.item_type = 'product' AND p.name LIKE ?) OR 
                 (s.item_type = 'service' AND sv.name LIKE ?)
             )";
-            $params[] = "%{$search}%";
-            $params[] = "%{$search}%";
+            $params[] = "%" . like_escape($search) . "%";
+            $params[] = "%" . like_escape($search) . "%";
         }
 
-        $sql .= " ORDER BY s.sold_at DESC";
+        $sql .= " ORDER BY s.sold_at DESC, s.id DESC";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -132,7 +143,7 @@ if ($method === 'GET') {
             'sales' => $formattedSales
         ]);
     } catch (Exception $e) {
-        jsonError($e->getMessage(), 500);
+        jsonDbError($e);
     }
 }
 

@@ -15,10 +15,27 @@ try {
     $dateTo = trim($_GET['date_to'] ?? $_GET['to'] ?? '');
     $compare = isset($_GET['compare']) && $_GET['compare'] === 'true';
 
+    // validate dates
+    if ($dateFrom !== '' && !isValidDateString($dateFrom)) {
+        jsonError('Invalid date_from format');
+    }
+    if ($dateTo !== '' && !isValidDateString($dateTo)) {
+        jsonError('Invalid date_to format');
+    }
+
     // default dates
     if ($dateFrom === '' || $dateTo === '') {
         $dateFrom = date('Y-m-01');
         $dateTo = date('Y-m-t');
+    }
+
+    if ($dateFrom > $dateTo) {
+        jsonError('date_from cannot be after date_to');
+    }
+
+    $rangeDays = (new DateTime($dateFrom))->diff(new DateTime($dateTo))->days;
+    if ($rangeDays > 366) {
+        jsonError('Date range cannot exceed 366 days');
     }
 
     // total revenue
@@ -38,14 +55,14 @@ try {
     $prodRev = (float)$revStats['product_revenue'];
     $servRev = (float)$revStats['service_revenue'];
 
-    $prodPct = $totalRev > 0 ? round(($prodRev / $totalRev) * 100) : 62;
-    $servPct = $totalRev > 0 ? (100 - $prodPct) : 38;
+    $prodPct = $totalRev > 0 ? round(($prodRev / $totalRev) * 100) : 0;
+    $servPct = $totalRev > 0 ? (100 - $prodPct) : 0;
 
     // best product
     $bpStmt = $pdo->prepare("
         SELECT p.name, SUM(s.total) AS revenue, SUM(s.quantity) AS units
         FROM sales s
-        JOIN products p ON s.item_id = p.id
+        JOIN products p ON s.item_id = p.id AND p.business_id = s.business_id
         WHERE s.business_id = ? AND s.item_type = 'product' AND DATE(s.sold_at) BETWEEN ? AND ?
         GROUP BY p.id, p.name
         ORDER BY revenue DESC
@@ -58,7 +75,7 @@ try {
     $bsStmt = $pdo->prepare("
         SELECT sv.name, SUM(s.total) AS revenue, SUM(s.quantity) AS units
         FROM sales s
-        JOIN services sv ON s.item_id = sv.id
+        JOIN services sv ON s.item_id = sv.id AND sv.business_id = s.business_id
         WHERE s.business_id = ? AND s.item_type = 'service' AND DATE(s.sold_at) BETWEEN ? AND ?
         GROUP BY sv.id, sv.name
         ORDER BY revenue DESC
@@ -107,8 +124,8 @@ try {
             SUM(s.quantity) AS total_units,
             SUM(s.total) AS total_revenue
         FROM sales s
-        LEFT JOIN products p ON s.item_type = 'product' AND s.item_id = p.id
-        LEFT JOIN services sv ON s.item_type = 'service' AND s.item_id = sv.id
+        LEFT JOIN products p ON s.item_type = 'product' AND s.item_id = p.id AND p.business_id = s.business_id
+        LEFT JOIN services sv ON s.item_type = 'service' AND s.item_id = sv.id AND sv.business_id = s.business_id
         WHERE s.business_id = ? AND DATE(s.sold_at) BETWEEN ? AND ?
         GROUP BY s.item_type, s.item_id, item_name
         ORDER BY total_revenue DESC
@@ -132,6 +149,12 @@ try {
     // business comparison
     $comparison = [];
     if ($compare) {
+        $allowedIds = getAllowedBusinessIds($pdo, getCurrentUserId());
+        if (empty($allowedIds)) {
+            jsonError('No business assigned to this account', 403);
+        }
+
+        $placeholders = implode(',', array_fill(0, count($allowedIds), '?'));
         $compStmt = $pdo->prepare("
             SELECT 
                 b.id AS business_id,
@@ -142,10 +165,11 @@ try {
                 COALESCE(SUM(CASE WHEN s.item_type = 'service' THEN s.total ELSE 0 END), 0) AS service_revenue
             FROM businesses b
             LEFT JOIN sales s ON s.business_id = b.id AND DATE(s.sold_at) BETWEEN ? AND ?
+            WHERE b.id IN ($placeholders)
             GROUP BY b.id, b.name
             ORDER BY b.id ASC
         ");
-        $compStmt->execute([$dateFrom, $dateTo]);
+        $compStmt->execute(array_merge([$dateFrom, $dateTo], $allowedIds));
         $compRows = $compStmt->fetchAll();
         foreach ($compRows as $cr) {
             $comparison[] = [
@@ -167,6 +191,7 @@ try {
         ],
         'kpi' => [
             'total_revenue' => $totalRev,
+            'total_transactions' => (int)$revStats['total_transactions'],
             'product_revenue' => $prodRev,
             'service_revenue' => $servRev,
             'product_percentage' => (int)$prodPct,
@@ -192,5 +217,5 @@ try {
         'comparison' => $comparison
     ]);
 } catch (Exception $e) {
-    jsonError($e->getMessage(), 500);
+    jsonDbError($e);
 }

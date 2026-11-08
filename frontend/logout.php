@@ -1,21 +1,18 @@
 <?php
-// start session
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+require_once __DIR__ . '/includes/session.php';
+
+$logoutToken = (string)($_POST['csrf_token'] ?? '');
+if ($logoutToken === '' || !csrf_token_is_valid($logoutToken)) {
+    http_response_code(403);
+    exit('Invalid session check. Please go back and try again.');
 }
 
-// destroy session
-$_SESSION = [];
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000,
-        $params["path"], $params["domain"],
-        $params["secure"], $params["httponly"]
-    );
+if (!empty($_SESSION['user_id'])) {
+    require_once __DIR__ . '/../backend/api/connectdb.php';
+    logout_user($pdo);
+} else {
+    destroy_app_session();
 }
-session_destroy();
 
-// redirect login
 header('Location: login.php');
 exit;
-

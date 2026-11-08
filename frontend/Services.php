@@ -10,7 +10,7 @@ include 'includes/header.php';
 <!-- action button -->
 <div class="d-flex justify-content-end gap-2 mb-3">
     <button type="button" class="btn btn-pill active" id="addServiceBtn">
-        <i class="bi bi-plus"></i> Add service
+        <i class="fa-solid fa-plus"></i> Add service
     </button>
 </div>
 
@@ -18,23 +18,23 @@ include 'includes/header.php';
 <section class="row g-3 mb-3">
     <div class="col-12 col-md-4">
         <div class="ui-card stat">
-            <div class="stat-label">Services revenue - October</div>
-            <div class="stat-value">₱63,124</div>
-            <div class="stat-note">38% of all revenue</div>
+            <div class="stat-label">Services revenue</div>
+            <div class="stat-value" id="svcRevenue">₱0</div>
+            <div class="stat-note" id="svcRevenueNote">All recorded sales</div>
         </div>
     </div>
     <div class="col-6 col-md-4">
         <div class="ui-card stat">
             <div class="stat-label">Active services</div>
-            <div class="stat-value">5</div>
-            <div class="stat-note">1 marked unavailable</div>
+            <div class="stat-value" id="svcActive">0</div>
+            <div class="stat-note" id="svcActiveNote">0 unavailable</div>
         </div>
     </div>
     <div class="col-6 col-md-4">
         <div class="ui-card stat">
             <div class="stat-label">Top service</div>
-            <div class="stat-value">Photocopy</div>
-            <div class="stat-note">₱31,400 in October</div>
+            <div class="stat-value" id="svcTop">—</div>
+            <div class="stat-note" id="svcTopNote">No sales yet</div>
         </div>
     </div>
 </section>
@@ -53,7 +53,7 @@ include 'includes/header.php';
                         <button type="button" class="btn btn-pill active">Services</button>
                     </div>
                     <div class="input-group ms-md-auto" style="max-width:280px;">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <span class="input-group-text bg-white"><i class="fa-solid fa-magnifying-glass"></i></span>
                         <input type="search" id="search" class="form-control ui-input border-start-0"
                             placeholder="Search services">
                     </div>
@@ -77,50 +77,7 @@ include 'includes/header.php';
                                 <th></th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr data-status="available">
-                                <td class="fw-semibold">Colored Printing</td>
-                                <td>Page</td>
-                                <td>₱15</td>
-                                <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
-                            </tr>
-                            <tr data-status="available">
-                                <td class="fw-semibold">Photocopy</td>
-                                <td>Page</td>
-                                <td>₱2</td>
-                                <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
-                            </tr>
-                            <tr data-status="available">
-                                <td class="fw-semibold">Black &amp; White Printing</td>
-                                <td>Page</td>
-                                <td>₱5</td>
-                                <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
-                            </tr>
-                            <tr data-status="available">
-                                <td class="fw-semibold">Lamination</td>
-                                <td>Sheet</td>
-                                <td>₱20</td>
-                                <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
-                            </tr>
-                            <tr data-status="available">
-                                <td class="fw-semibold">Spiral Binding</td>
-                                <td>Copy</td>
-                                <td>₱35</td>
-                                <td><span class="status-badge status-available">Available</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
-                            </tr>
-                            <tr data-status="unavailable">
-                                <td class="fw-semibold">ID Picture Print</td>
-                                <td>Sheet</td>
-                                <td>₱30</td>
-                                <td><span class="status-badge status-low">Unavailable</span></td>
-                                <td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>
-                            </tr>
-                        </tbody>
+                        <tbody id="serviceBody"></tbody>
                     </table>
                 </div>
 
@@ -135,13 +92,13 @@ include 'includes/header.php';
                 <form id="serviceForm" onsubmit="return false">
                     <div class="mb-3">
                         <label for="serviceName" class="field-label">Service name</label>
-                        <input type="text" id="serviceName" class="form-control ui-input" value="Colored Printing" required>
+                        <input type="text" id="serviceName" class="form-control ui-input" placeholder="e.g. Colored Printing" maxlength="255" required>
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-5">
                             <label for="price" class="field-label">Price (₱)</label>
-                            <input type="number" id="price" class="form-control ui-input" value="15.00" step="0.01" min="0" required>
+                            <input type="number" id="price" class="form-control ui-input" value="0.00" step="0.01" min="0" required>
                         </div>
                         <div class="col-7">
                             <label for="chargedPer" class="field-label">Charged per</label>
@@ -156,8 +113,8 @@ include 'includes/header.php';
                     <div class="mb-3">
                         <label for="status" class="field-label">Status</label>
                         <select id="status" class="form-select ui-input">
-                            <option value="available" selected>Available</option>
-                            <option value="unavailable">Unavailable</option>
+                            <option value="active" selected>Available</option>
+                            <option value="inactive">Unavailable</option>
                         </select>
                     </div>
 
@@ -168,18 +125,17 @@ include 'includes/header.php';
                     </div>
 
                     <div class="info-box mb-3">
-                        <i class="bi bi-info-square-fill"></i>
+                        <i class="fa-solid fa-circle-info"></i>
                         <span>Services don't use stock. Quantity and unit price are saved with every sale, so past sales keep their original price when you change it here.</span>
                     </div>
 
                     <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-pill active" id="saveServiceBtn">Save changes</button>
+                        <button type="button" class="btn btn-pill active" id="saveServiceBtn">Add service</button>
                         <button type="button" class="btn btn-pill" id="cancelServiceBtn">Cancel</button>
+                        <button type="button" class="btn btn-pill d-none" id="deleteServiceBtn">Delete</button>
                     </div>
 
-                    <div id="serviceMsg" class="text-success text-center mt-2 d-none" style="font-size:0.8rem;">
-                        Service updated!
-                    </div>
+                    <div id="serviceMsg" class="text-center mt-2 d-none" style="font-size:0.8rem;"></div>
                 </form>
             </div>
         </section>
@@ -188,113 +144,230 @@ include 'includes/header.php';
 </div>
 
 <script>
-    // active row
-    var activeRow = document.querySelector('#table tbody tr');
+(function () {
+    var services = [];
+    var activeId = null;
+    var role = window.APP_USER ? window.APP_USER.role : '';
+    var isAdmin = role === 'owner' || role === 'admin';
+    var canCreate = role === 'owner' || role === 'admin' || role === 'staff';
+    var msgTimer = null;
 
-    // edit populate
-    function bindEditButtons() {
-        document.querySelectorAll('#table .edit-btn').forEach(function (btn) {
-            btn.onclick = function () {
-                activeRow = btn.closest('tr');
-                var cells = activeRow.querySelectorAll('td');
-                document.getElementById('serviceName').value = cells[0].textContent.trim();
-                document.getElementById('price').value = cells[2].textContent.replace('₱', '').trim();
-                var per = cells[1].textContent.trim();
-                var sel = document.getElementById('chargedPer');
-                for (var i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].text === per) { sel.selectedIndex = i; break; }
-                }
-                var badgeText = cells[3].textContent.toLowerCase();
-                document.getElementById('status').value = badgeText.indexOf('un') !== -1 ? 'unavailable' : 'available';
-            };
+    var els = {
+        body: document.getElementById('serviceBody'),
+        add: document.getElementById('addServiceBtn'),
+        save: document.getElementById('saveServiceBtn'),
+        cancel: document.getElementById('cancelServiceBtn'),
+        remove: document.getElementById('deleteServiceBtn'),
+        name: document.getElementById('serviceName'),
+        price: document.getElementById('price'),
+        chargedPer: document.getElementById('chargedPer'),
+        description: document.getElementById('description'),
+        status: document.getElementById('status'),
+        search: document.getElementById('search'),
+        msg: document.getElementById('serviceMsg'),
+        pills: document.getElementById('pills')
+    };
+
+    function showMessage(text, isError) {
+        els.msg.textContent = text;
+        els.msg.classList.toggle('text-danger', !!isError);
+        els.msg.classList.toggle('text-success', !isError);
+        els.msg.classList.remove('d-none');
+        clearTimeout(msgTimer);
+        msgTimer = setTimeout(function () { els.msg.classList.add('d-none'); }, 3000);
+    }
+
+    function renderRows() {
+        els.body.innerHTML = '';
+        if (!services.length) {
+            els.body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No services yet. Add your first service.</td></tr>';
+            return;
+        }
+        services.forEach(function (s) {
+            var active = s.status === 'active';
+            var tr = document.createElement('tr');
+            tr.dataset.id = s.id;
+            tr.dataset.status = active ? 'available' : 'unavailable';
+            tr.innerHTML =
+                '<td class="fw-semibold">' + escapeHtml(s.name) + '</td>' +
+                '<td>' + escapeHtml(s.charged_per) + '</td>' +
+                '<td>' + peso(s.price) + '</td>' +
+                '<td><span class="status-badge ' + (active ? 'status-available' : 'status-low') + '">' + (active ? 'Available' : 'Unavailable') + '</span></td>' +
+                '<td class="text-end">' + (isAdmin ? '<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square"></i></button>' : '') + '</td>';
+            els.body.appendChild(tr);
         });
     }
-    bindEditButtons();
 
-    // add service
-    document.getElementById('addServiceBtn').addEventListener('click', function () {
-        activeRow = null;
-        document.getElementById('serviceName').value = '';
-        document.getElementById('price').value = '0.00';
-        document.getElementById('description').value = '';
-        document.getElementById('serviceName').focus();
-    });
+    function updateStats(data) {
+        document.getElementById('svcRevenue').textContent = peso(data.revenue || 0);
+        document.getElementById('svcRevenueNote').textContent = 'All recorded sales';
+        document.getElementById('svcActive').textContent = data.counts.available;
+        document.getElementById('svcActiveNote').textContent = data.counts.unavailable + ' unavailable';
+        document.getElementById('svcTop').textContent = data.top_service ? data.top_service.name : '—';
+        document.getElementById('svcTopNote').textContent = data.top_service ? peso(data.top_service.revenue) + ' revenue' : 'No sales yet';
+    }
 
-    // cancel edit
-    document.getElementById('cancelServiceBtn').addEventListener('click', function () {
-        if (activeRow) {
-            var firstBtn = activeRow.querySelector('.edit-btn');
-            if (firstBtn) firstBtn.click();
-        } else {
-            document.getElementById('serviceName').value = 'Colored Printing';
-            document.getElementById('price').value = '15.00';
-        }
-    });
+    function updatePillCounts(counts) {
+        var pills = els.pills.querySelectorAll('.btn-pill');
+        if (pills[0]) pills[0].textContent = 'All - ' + counts.total;
+        if (pills[1]) pills[1].textContent = 'Available - ' + counts.available;
+        if (pills[2]) pills[2].textContent = 'Unavailable - ' + counts.unavailable;
+    }
 
-    // save changes
-    document.getElementById('saveServiceBtn').addEventListener('click', function () {
-        var name = document.getElementById('serviceName').value.trim();
-        var per = document.getElementById('chargedPer').value;
-        var price = parseFloat(document.getElementById('price').value) || 0;
-        var status = document.getElementById('status').value;
+    function applyFilters() {
+        var activePill = els.pills.querySelector('.btn-pill.active');
+        var filter = activePill ? activePill.dataset.filter : 'all';
+        var query = els.search.value.toLowerCase().trim();
 
-        if (!name) return;
+        els.body.querySelectorAll('tr[data-status]').forEach(function (row) {
+            var visible = (filter === 'all' || row.dataset.status === filter);
+            if (visible && query) {
+                visible = row.textContent.toLowerCase().indexOf(query) !== -1;
+            }
+            row.style.display = visible ? '' : 'none';
+        });
+    }
 
-        var isAvail = status === 'available';
-        var badgeClass = isAvail ? 'status-available' : 'status-low';
-        var badgeLabel = isAvail ? 'Available' : 'Unavailable';
-        var rowStatus = isAvail ? 'available' : 'unavailable';
+    function loadServices() {
+        Api.get('services.php').then(function (data) {
+            services = data.services || [];
+            renderRows();
+            updateStats(data);
+            updatePillCounts(data.counts);
+            applyFilters();
+        }).catch(function (err) {
+            showMessage(err.message, true);
+        });
+    }
 
-        if (activeRow) {
-            var cells = activeRow.querySelectorAll('td');
-            cells[0].textContent = name;
-            cells[1].textContent = per;
-            cells[2].textContent = '₱' + price;
-            cells[3].innerHTML = '<span class="status-badge ' + badgeClass + '">' + badgeLabel + '</span>';
-            activeRow.dataset.status = rowStatus;
-        } else {
-            var tbody = document.querySelector('#table tbody');
-            var tr = document.createElement('tr');
-            tr.dataset.status = rowStatus;
-            tr.innerHTML =
-                '<td class="fw-semibold">' + name + '</td>' +
-                '<td>' + per + '</td>' +
-                '<td>₱' + price + '</td>' +
-                '<td><span class="status-badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
-                '<td class="text-end"><button type="button" class="edit-btn" aria-label="Edit"><i class="bi bi-pencil-square"></i></button></td>';
-            tbody.appendChild(tr);
-            activeRow = tr;
-            bindEditButtons();
-        }
+    function resetForm() {
+        activeId = null;
+        els.name.value = '';
+        els.price.value = '0.00';
+        els.chargedPer.value = 'Page';
+        els.description.value = '';
+        els.status.value = 'active';
+        els.remove.classList.add('d-none');
+        els.save.textContent = 'Add service';
+        els.body.querySelectorAll('tr.table-active').forEach(function (row) { row.classList.remove('table-active'); });
+    }
 
-        var msg = document.getElementById('serviceMsg');
-        msg.classList.remove('d-none');
-        setTimeout(function () { msg.classList.add('d-none'); }, 2000);
-    });
-
-    // filter pills
-    document.querySelectorAll('#pills .btn-pill').forEach(function (p) {
-        p.addEventListener('click', function () {
-            document.querySelectorAll('#pills .btn-pill').forEach(function (x) { x.classList.remove('active'); });
-            p.classList.add('active');
-            var f = p.dataset.filter;
-            document.querySelectorAll('#table tbody tr').forEach(function (r) {
-                if (f === 'all') {
-                    r.style.display = '';
-                } else {
-                    r.style.display = (r.dataset.status === f) ? '' : 'none';
-                }
+    function fillForm(service, row) {
+        activeId = Number(service.id);
+        els.name.value = service.name;
+        els.price.value = service.price;
+        if (service.charged_per && els.chargedPer.value !== service.charged_per) {
+            var existing = Array.prototype.some.call(els.chargedPer.options, function (option) {
+                return option.value === service.charged_per;
             });
+            if (!existing) {
+                var option = document.createElement('option');
+                option.value = service.charged_per;
+                option.textContent = service.charged_per;
+                els.chargedPer.appendChild(option);
+            }
+            els.chargedPer.value = service.charged_per;
+        }
+        els.description.value = service.description || '';
+        els.status.value = service.status === 'inactive' ? 'inactive' : 'active';
+        els.remove.classList.toggle('d-none', !isAdmin);
+        els.save.textContent = 'Save changes';
+        els.body.querySelectorAll('tr.table-active').forEach(function (tr) { tr.classList.remove('table-active'); });
+        if (row) row.classList.add('table-active');
+        els.name.focus();
+    }
+
+    if (!canCreate) {
+        els.add.classList.add('d-none');
+        els.save.classList.add('d-none');
+        els.cancel.classList.add('d-none');
+        [els.name, els.price, els.chargedPer, els.description, els.status].forEach(function (el) { el.disabled = true; });
+    }
+
+    els.body.addEventListener('click', function (event) {
+        var button = event.target.closest('.edit-btn');
+        if (!button || !isAdmin) return;
+        var row = button.closest('tr');
+        var service = services.filter(function (s) { return Number(s.id) === Number(row.dataset.id); })[0];
+        if (service) fillForm(service, row);
+    });
+
+    els.add.addEventListener('click', function () {
+        resetForm();
+        els.name.focus();
+    });
+
+    els.cancel.addEventListener('click', function () {
+        resetForm();
+    });
+
+    els.save.addEventListener('click', function () {
+        if (!canCreate) return;
+
+        var payload = {
+            name: els.name.value.trim(),
+            charged_per: els.chargedPer.value,
+            price: parseFloat(els.price.value),
+            description: els.description.value.trim(),
+            status: els.status.value === 'inactive' ? 'inactive' : 'active'
+        };
+
+        if (!payload.name) {
+            showMessage('Service name is required.', true);
+            return;
+        }
+        if (!isFinite(payload.price) || payload.price < 0) {
+            showMessage('Enter a valid price.', true);
+            return;
+        }
+
+        var editing = activeId !== null;
+        if (editing) {
+            if (!isAdmin) {
+                showMessage('Only owners and admins can edit existing services.', true);
+                return;
+            }
+            payload.action = 'update';
+            payload.id = activeId;
+        }
+
+        els.save.disabled = true;
+        Api.post('services.php', payload).then(function () {
+            showMessage(editing ? 'Service updated!' : 'Service added!');
+            resetForm();
+            loadServices();
+        }).catch(function (err) {
+            showMessage(err.message, true);
+        }).then(function () {
+            els.save.disabled = false;
         });
     });
 
-    // search filter
-    document.getElementById('search').addEventListener('input', function (e) {
-        var q = e.target.value.toLowerCase();
-        document.querySelectorAll('#table tbody tr').forEach(function (r) {
-            r.style.display = r.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+    els.remove.addEventListener('click', function () {
+        if (!isAdmin || !activeId) return;
+        if (!window.confirm('Delete this service? This cannot be undone.')) return;
+
+        Api.post('services.php', { action: 'delete', id: activeId }).then(function () {
+            showMessage('Service deleted.');
+            resetForm();
+            loadServices();
+        }).catch(function (err) {
+            showMessage(err.message, true);
         });
     });
+
+    els.pills.addEventListener('click', function (event) {
+        var pill = event.target.closest('.btn-pill');
+        if (!pill) return;
+        els.pills.querySelectorAll('.btn-pill').forEach(function (p) { p.classList.remove('active'); });
+        pill.classList.add('active');
+        applyFilters();
+    });
+
+    els.search.addEventListener('input', applyFilters);
+
+    loadServices();
+})();
 </script>
 
 <?php include 'includes/footer.php'; ?>

@@ -4,15 +4,30 @@ After=network.target
 
 [Service]
 Type=simple
-User=www-data
-Group=www-data
+# Its own user: it must not be able to read the web app's .env (owned by root:www-data, mode 640).
+User=opencode
+Group=opencode
 EnvironmentFile=/etc/opencode/opencode.env
 WorkingDirectory=/var/lib/opencode
 ExecStart=/usr/local/bin/opencode serve --port 4096 --hostname 127.0.0.1
 Restart=always
 RestartSec=5
+
+# Sandbox: the AI backend only needs its own state directory and outbound HTTPS.
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/opencode
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+CapabilityBoundingSet=
+UMask=0077
 
 [Install]
 WantedBy=multi-user.target

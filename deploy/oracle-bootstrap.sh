@@ -1,33 +1,79 @@
 #!/usr/bin/env bash
 # One-shot bootstrap for Oracle Cloud Ubuntu 24.04: sales-tracker + OpenCode 1.x
 #
-# Upload the project first, then run:
-#   sudo bash /var/www/sales-tracker/deploy/oracle-bootstrap.sh <domain-or-ip> <db_password> <opencode_password> [letsencrypt_email]
+# Upload the project to /var/www/sales-tracker first, then run as root:
 #
-# Example:
-#   sudo bash deploy/oracle-bootstrap.sh 140.238.1.2 'Sd8kQ2mN7pXr4tYz' 'Oc7vB3nM9kL2jH5g'
-#   sudo bash deploy/oracle-bootstrap.sh shop.example.com 'Sd8kQ2mN7pXr4tYz' 'Oc7vB3nM9kL2jH5g' me@example.com
+#   sudo bash /var/www/sales-tracker/deploy/oracle-bootstrap.sh <domain-or-ip> <db_password|auto> <opencode_password|auto> [letsencrypt_email]
 #
-# Passwords: letters, digits and . _ @ % + = : - only (no spaces, quotes, $, #, !).
+# Use "auto" instead of a password to have the script generate a strong random one.
+# Generated passwords are written to /root/sales-tracker-credentials.txt (root only) and
+# are never printed. Passwords typed on the command line end up in your shell history and
+# in `ps`, so prefer "auto". If you must supply your own, leave the arguments as "" and
+# export SALES_DB_PASS / SALES_OC_PASS instead.
+#
+# Examples:
+#   sudo bash deploy/oracle-bootstrap.sh 203.0.113.10 auto auto
+#   sudo bash deploy/oracle-bootstrap.sh shop.example.com auto auto me@example.com
+#
+# Own passwords: 12+ characters from letters, digits and . _ @ % + = : -  (no spaces, quotes, $, #, !).
+#
+# Safe to re-run: an existing encryption.key is kept (so stored 2FA secrets stay readable)
+# and the previous .env is backed up to /root before it is rewritten.
 set -euo pipefail
 
+# --- helpers begin (the tests in deploy/ source only this block, keep it free of side effects) ---
+die() { echo "ERROR: $*" >&2; exit 1; }
+
+# Prints a random 32-character hex secret. It always satisfies valid_secret.
+gen_secret() { openssl rand -hex 16; }
+
+# Succeeds when $1 meets the password rules used by this script.
+valid_secret() { [[ "$1" =~ ^[A-Za-z0-9._@%+=:-]{12,}$ ]]; }
+
+# Prints the "encryption.key = ..." line for the production .env.
+# An existing key is kept: the app encrypts 2FA secrets with it, so replacing it would lock
+# every user with 2FA out. Otherwise a new 256-bit key is generated.
+encryption_key_line() {
+  local envfile="$1" line=""
+  if [[ -f "$envfile" ]]; then
+    line="$(grep -E '^encryption\.key[[:space:]]*=[[:space:]]*[^[:space:]#]+' "$envfile" | head -n1 || true)"
+  fi
+  if [[ -z "$line" ]]; then
+    line="encryption.key = hex2bin:$(openssl rand -hex 32)"
+  fi
+  printf '%s\n' "$line"
+}
+# --- helpers end ---
+
 APP_DIR="/var/www/sales-tracker"
+ENV_FILE="$APP_DIR/.env"
 WEB_USER="www-data"
+OC_USER="opencode"
 OC_VERSION="1.19.6"
+CREDS_FILE="/root/sales-tracker-credentials.txt"
 
 DOMAIN="${1:-}"
-DB_PASS="${2:-}"
-OC_PASS="${3:-}"
+DB_PASS="${2:-${SALES_DB_PASS:-}}"
+OC_PASS="${3:-${SALES_OC_PASS:-}}"
 LE_EMAIL="${4:-}"
-
-die() { echo "ERROR: $*" >&2; exit 1; }
 
 [[ $EUID -eq 0 ]] || die "run as root: sudo bash $0 ..."
 [[ -n "$DOMAIN" && -n "$DB_PASS" && -n "$OC_PASS" ]] || \
-  die "usage: sudo bash $0 <domain-or-ip> <db_password> <opencode_password> [letsencrypt_email]"
+  die "usage: sudo bash $0 <domain-or-ip> <db_password|auto> <opencode_password|auto> [letsencrypt_email]"
 [[ "$DOMAIN" =~ ^[A-Za-z0-9.-]+$ ]] || die "domain/IP contains invalid characters"
-[[ "$DB_PASS" =~ ^[A-Za-z0-9._@%+=:-]{12,}$ ]] || die "DB password must be 12+ chars from A-Za-z0-9._@%+=:-"
-[[ "$OC_PASS" =~ ^[A-Za-z0-9._@%+=:-]{12,}$ ]] || die "OpenCode password must be 12+ chars from A-Za-z0-9._@%+=:-"
+
+GEN_DB=0
+GEN_OC=0
+if [[ "$DB_PASS" == "auto" ]]; then
+  GEN_DB=1
+elif ! valid_secret "$DB_PASS"; then
+  die "DB password must be 12+ chars from A-Za-z0-9._@%+=:- (or use: auto)"
+fi
+if [[ "$OC_PASS" == "auto" ]]; then
+  GEN_OC=1
+elif ! valid_secret "$OC_PASS"; then
+  die "OpenCode password must be 12+ chars from A-Za-z0-9._@%+=:- (or use: auto)"
+fi
 [[ -f "$APP_DIR/spark" ]] || die "project not found at $APP_DIR (upload it first)"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -47,11 +93,32 @@ apt-get update "${APT_OPTS[@]}"
 apt-get upgrade "${APT_OPTS[@]}"
 apt-get install "${APT_OPTS[@]}" \
   apache2 mysql-server php php-cli php-mysql php-mbstring php-intl php-curl \
-  php-xml php-zip php-gd libapache2-mod-php composer unzip git curl ca-certificates \
+  php-xml php-zip php-gd libapache2-mod-php composer unzip git curl ca-certificates openssl \
   fail2ban unattended-upgrades certbot python3-certbot-apache
 
 a2enmod rewrite headers ssl >/dev/null
 systemctl restart apache2
+
+# vendor/ is not in git, so a project cloned from GitHub has no framework yet.
+if [[ ! -f "$APP_DIR/vendor/autoload.php" ]]; then
+  echo "    vendor/ not found, running composer install"
+  (cd "$APP_DIR" && COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction)
+fi
+
+# Generate requested passwords now that openssl is installed.
+if (( GEN_DB )); then DB_PASS="$(gen_secret)"; fi
+if (( GEN_OC )); then OC_PASS="$(gen_secret)"; fi
+if (( GEN_DB || GEN_OC )); then
+  (
+    umask 077
+    {
+      echo "# Generated by oracle-bootstrap.sh on $(date -Is)"
+      if (( GEN_DB )); then echo "MySQL user 'salestracker' password: ${DB_PASS}"; fi
+      if (( GEN_OC )); then echo "OpenCode server password (user 'opencode'): ${OC_PASS}"; fi
+    } > "$CREDS_FILE"
+  )
+  chmod 600 "$CREDS_FILE"
+fi
 
 echo "==> [3/9] MySQL tuning + database/user"
 cat > /etc/mysql/mysql.conf.d/zz-sales-tracker.cnf <<'CNF'
@@ -70,10 +137,21 @@ FLUSH PRIVILEGES;
 SQL
 
 echo "==> [4/9] Production .env"
-cat > "$APP_DIR/.env" <<ENV
+ENC_KEY_LINE="$(encryption_key_line "$ENV_FILE")"
+if [[ -f "$ENV_FILE" ]]; then
+  ENV_BACKUP="/root/sales-tracker.env.$(date +%Y%m%d%H%M%S).bak"
+  install -m 600 "$ENV_FILE" "$ENV_BACKUP"
+  echo "    previous .env saved to $ENV_BACKUP"
+fi
+# Create the file with its final owner and mode first, so the secrets are never world-readable.
+install -m 640 -o root -g "$WEB_USER" /dev/null "$ENV_FILE"
+cat > "$ENV_FILE" <<ENV
 CI_ENVIRONMENT = production
 app.baseURL = 'http://${DOMAIN}/'
 app.forceGlobalSecureRequests = false
+
+# Encrypts 2FA secrets. Do not change or delete it once users have enabled 2FA.
+${ENC_KEY_LINE}
 
 DB_HOST = 127.0.0.1
 DB_PORT = 3306
@@ -85,14 +163,15 @@ OPENCODE_URL = http://127.0.0.1:4096
 OPENCODE_PASSWORD = ${OC_PASS}
 OPENCODE_MODEL =
 ENV
+grep -Eq '^encryption\.key[[:space:]]*=[[:space:]]*[^[:space:]#]+' "$ENV_FILE" || die "encryption.key was not written to $ENV_FILE"
 
 echo "==> [5/9] Permissions"
 chown -R "$WEB_USER:$WEB_USER" "$APP_DIR"
 find "$APP_DIR" -type d -exec chmod 755 {} \;
 find "$APP_DIR" -type f -exec chmod 644 {} \;
 chmod -R 775 "$APP_DIR/writable"
-chmod 640 "$APP_DIR/.env"
-chown root:"$WEB_USER" "$APP_DIR/.env"
+chmod 640 "$ENV_FILE"
+chown root:"$WEB_USER" "$ENV_FILE"
 
 echo "==> [6/9] Apache vhost (doc root = public/)"
 sed "s/yourdomain.com/${DOMAIN}/g" "$APP_DIR/deploy/apache-sales-tracker.conf" \
@@ -111,20 +190,29 @@ if ! command -v opencode >/dev/null 2>&1; then
   curl -fsSL https://opencode.ai/install | bash -s -- --version "$OC_VERSION"
   install -m 755 /root/.opencode/bin/opencode /usr/local/bin/opencode
 fi
-install -d -o "$WEB_USER" -g "$WEB_USER" /var/lib/opencode
-install -d -m 700 /etc/opencode
+# OpenCode gets its own user so it can never read the web app's .env (root:www-data 640).
+if ! id -u "$OC_USER" >/dev/null 2>&1; then
+  useradd --system --user-group --home-dir /var/lib/opencode --no-create-home --shell /usr/sbin/nologin "$OC_USER"
+fi
+install -d -o "$OC_USER" -g "$OC_USER" -m 700 /var/lib/opencode
+chown -R "$OC_USER:$OC_USER" /var/lib/opencode   # also fixes installs made by an older version of this script
+# /etc/opencode is root-owned: the read-only config is world-readable, the env file (password) is not.
+install -d -m 755 /etc/opencode
+install -m 644 "$APP_DIR/deploy/opencode.json" /etc/opencode/opencode.json
+install -m 600 -o root -g root /dev/null /etc/opencode/opencode.env
 cat > /etc/opencode/opencode.env <<ENV
 HOME=/var/lib/opencode
 XDG_DATA_HOME=/var/lib/opencode/.local/share
 XDG_CONFIG_HOME=/var/lib/opencode/.config
 XDG_CACHE_HOME=/var/lib/opencode/.cache
+OPENCODE_CONFIG=/etc/opencode/opencode.json
 OPENCODE_SERVER_PASSWORD=${OC_PASS}
 OPENCODE_DISABLE_AUTOUPDATE=true
 ENV
-chmod 600 /etc/opencode/opencode.env
 cp "$APP_DIR/deploy/opencode.service" /etc/systemd/system/opencode.service
 systemctl daemon-reload
-systemctl enable --now opencode
+systemctl enable opencode
+systemctl restart opencode
 
 echo "==> [9/9] Firewall + fail2ban + unattended upgrades"
 ufw default deny incoming
@@ -139,8 +227,8 @@ dpkg-reconfigure -plow unattended-upgrades >/dev/null 2>&1 || true
 if [[ -n "$LE_EMAIL" && ! "$DOMAIN" =~ ^[0-9.]+$ ]]; then
   echo "==> Let's Encrypt certificate for ${DOMAIN}"
   if certbot --apache -d "$DOMAIN" --non-interactive --agree-tos -m "$LE_EMAIL" --redirect; then
-    sed -i "s|app.baseURL = 'http://${DOMAIN}/'|app.baseURL = 'https://${DOMAIN}/'|" "$APP_DIR/.env"
-    sed -i "s|app.forceGlobalSecureRequests = false|app.forceGlobalSecureRequests = true|" "$APP_DIR/.env"
+    sed -i "s|app.baseURL = 'http://${DOMAIN}/'|app.baseURL = 'https://${DOMAIN}/'|" "$ENV_FILE"
+    sed -i "s|app.forceGlobalSecureRequests = false|app.forceGlobalSecureRequests = true|" "$ENV_FILE"
   else
     echo "WARN: certbot failed (DNS not pointing here yet?). Site stays on HTTP."
   fi
@@ -149,7 +237,20 @@ fi
 echo
 echo "==> Health checks"
 sleep 2
-curl -fsS -u "opencode:${OC_PASS}" http://127.0.0.1:4096/global/health && echo " <- OpenCode OK"
+# The password is passed to curl on stdin, not as an argument, so it does not show up in `ps`.
+oc_curl() { curl -fsS --max-time 10 -K - "$@" <<<"user = \"opencode:${OC_PASS}\""; }
+if oc_curl http://127.0.0.1:4096/global/health; then
+  echo " <- OpenCode OK"
+else
+  echo "WARN: OpenCode did not answer. Check: journalctl -u opencode -n 50"
+fi
+OC_CONFIG_JSON="$(oc_curl http://127.0.0.1:4096/config 2>/dev/null || true)"
+if grep -q '"deny"' <<<"$OC_CONFIG_JSON"; then
+  echo "OpenCode tool permissions: deny (OK)"
+else
+  echo "WARN: could not confirm that OpenCode runs with all tools denied."
+  echo "      Check /etc/opencode/opencode.json and that opencode.env sets OPENCODE_CONFIG."
+fi
 curl -fsS -o /dev/null -w "Apache HTTP %{http_code}\n" "http://127.0.0.1/" || true
 systemctl --no-pager --lines=0 status opencode || true
 
@@ -157,5 +258,13 @@ echo
 echo "DONE."
 echo "  Site:      http://${DOMAIN}/"
 echo "  Next:      create the first real account at /register, then delete test data."
-echo "  AI auth:   sudo -u www-data env HOME=/var/lib/opencode XDG_DATA_HOME=/var/lib/opencode/.local/share opencode auth login"
-echo "             (or copy your local ~/.local/share/opencode/auth.json into /var/lib/opencode/.local/share/opencode/)"
+echo "  AI auth:   sudo -u ${OC_USER} env HOME=/var/lib/opencode XDG_DATA_HOME=/var/lib/opencode/.local/share opencode auth login"
+if (( GEN_DB || GEN_OC )); then
+  echo "  Passwords: generated ones are in ${CREDS_FILE} (root only)"
+fi
+echo
+echo "  IMPORTANT: open TCP 80 and 443 for this instance in the Oracle Cloud Console"
+echo "             (VCN > Security Lists, or the instance's Network Security Group > Ingress Rules)."
+echo "             This script only sets up the server's own firewall, so the site is not reachable"
+echo "             from the internet until you do that. Then test from another machine:"
+echo "               curl -I http://${DOMAIN}/"

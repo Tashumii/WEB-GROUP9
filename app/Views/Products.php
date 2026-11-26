@@ -298,8 +298,8 @@ include APPPATH . 'Views/includes/header.php';
                 '<td>' + Number(p.stock) + '</td>' +
                 '<td><span class="status-badge ' + meta.badge + '">' + meta.label + '</span></td>' +
                 '<td class="text-end">' +
-                    '<button type="button" class="btn btn-sm btn-outline-primary ai-advice-btn me-1" aria-label="AI pricing advice" title="AI pricing advice"><i class="fa-solid fa-robot" aria-hidden="true"></i></button>' +
-                    (isAdmin ? '<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>' : '') +
+                    (isAdmin ? '<button type="button" class="btn btn-sm btn-outline-primary ai-advice-btn me-1" aria-label="AI pricing advice" title="AI pricing advice"><i class="fa-solid fa-robot" aria-hidden="true"></i></button>' : '') +
+                    (isAdmin ?'<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></button>' : '') +
                 '</td>';
             els.body.appendChild(tr);
         });
@@ -387,7 +387,7 @@ include APPPATH . 'Views/includes/header.php';
             return;
         }
         var aiBtn = event.target.closest('.ai-advice-btn');
-        if (aiBtn) {
+        if (aiBtn && isAdmin) {
             var arow = aiBtn.closest('tr');
             var aproduct = products.filter(function (p) { return Number(p.id) === Number(arow.dataset.id); })[0];
             if (aproduct) openAiAdvice('product', aproduct);

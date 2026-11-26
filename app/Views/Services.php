@@ -247,8 +247,8 @@ include APPPATH . 'Views/includes/header.php';
                 '<td>' + peso(s.price) + '</td>' +
                 '<td><span class="status-badge ' + (active ? 'status-available' : 'status-low') + '">' + (active ? 'Available' : 'Unavailable') + '</span></td>' +
                 '<td class="text-end">' +
-                    '<button type="button" class="btn btn-sm btn-outline-primary ai-advice-btn me-1" aria-label="AI pricing advice" title="AI pricing advice"><i class="fa-solid fa-robot" aria-hidden="true"></i></button>' +
-                    (isAdmin ? '<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square"></i></button>' : '') +
+                    (isAdmin ? '<button type="button" class="btn btn-sm btn-outline-primary ai-advice-btn me-1" aria-label="AI pricing advice" title="AI pricing advice"><i class="fa-solid fa-robot" aria-hidden="true"></i></button>' : '') +
+                    (isAdmin ?'<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square"></i></button>' : '') +
                 '</td>';
             els.body.appendChild(tr);
         });
@@ -349,7 +349,7 @@ include APPPATH . 'Views/includes/header.php';
             return;
         }
         var aiBtn = event.target.closest('.ai-advice-btn');
-        if (aiBtn) {
+        if (aiBtn && isAdmin) {
             var arow = aiBtn.closest('tr');
             var aservice = services.filter(function (s) { return Number(s.id) === Number(arow.dataset.id); })[0];
             if (aservice) openAiAdvice('service', aservice);

@@ -51,6 +51,7 @@
                         </details>
                     </li>
                 </ul>
+                <a href="<?= site_url('login') ?>" class="btn btn-dark btn-sm-pill ms-lg-auto mt-3 mt-lg-0">Log In</a>
             </div>
         </div>
     </nav>
@@ -63,7 +64,7 @@
                         <div class="eyebrow">Your one-stop school supply store</div>
                         <h1 id="hero-heading">SCHOOL<br><span>SUPPLIES</span></h1>
                         <p>From your everyday essentials to your next big idea, find everything you need for school right here.</p>
-                        <div class="d-flex gap-2 mt-3 flex-wrap"><a href="<?= site_url('login') ?>" class="btn btn-dark btn-sm-pill">Log In</a><a href="<?= site_url('register') ?>" class="btn btn-outline-secondary btn-sm-pill">Create Account</a><a href="#supplies" class="btn btn-outline-secondary btn-sm-pill">Explore Products</a></div>
+                        <div class="d-flex gap-2 mt-3 flex-wrap"><a href="<?= site_url('login') ?>" class="btn btn-dark btn-sm-pill">Log In</a><a href="<?= site_url('register') ?>" class="btn btn-outline-secondary btn-sm-pill">Create Account</a><a href="#categories" class="btn btn-outline-secondary btn-sm-pill">Explore Products</a></div>
                         <div class="small-note mt-3">Everything you need for a successful school year — 1,000+ products, 24/7 support.</div>
                     </div>
                     <div class="col-lg-6 col-xl-5">
@@ -189,9 +190,9 @@
                 </div>
                 <div class="col-4 col-md-2 col-lg-2">
                     <h3 class="footer-title">Explore</h3>
-                    <a class="d-block" href="#supplies">Products</a>
-                    <a class="d-block" href="#categories">Services</a>
-                    <a class="d-block" href="#supplies">Pricing</a>
+                    <a class="d-block" href="#supplies">Features</a>
+                    <a class="d-block" href="#categories">Categories</a>
+                    <a class="d-block" href="<?= site_url('login') ?>">Log in</a>
                 </div>
                 <div class="col-4 col-md-2 col-lg-3">
                     <h3 class="footer-title">Contact</h3>

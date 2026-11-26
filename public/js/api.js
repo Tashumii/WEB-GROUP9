@@ -19,6 +19,16 @@
         return url;
     }
 
+    function syncCsrfToken(token) {
+        if (!token) return;
+        if (csrfMeta) csrfMeta.content = token;
+        // Plain HTML forms (logout, etc.) carry their own hidden token; keep
+        // those in sync after actions that rotate the CSRF token.
+        document.querySelectorAll('input[name="csrf_token"]').forEach(function (input) {
+            input.value = token;
+        });
+    }
+
     function request(method, endpoint, payload, params) {
         var headers = { 'Accept': 'application/json' };
         var options = { method: method, headers: headers, credentials: 'same-origin' };
@@ -29,7 +39,7 @@
         }
         return fetch(endpointUrl(endpoint, params), options).then(function (response) {
             return response.json().catch(function () { return {}; }).then(function (data) {
-                if (data.csrf_token && csrfMeta) csrfMeta.content = data.csrf_token;
+                if (data.csrf_token) syncCsrfToken(data.csrf_token);
                 if (!response.ok || data.success === false) {
                     if (response.status === 401 && loginMeta && window.APP_USER && Number(window.APP_USER.id) > 0) {
                         window.location.assign(loginMeta.content);

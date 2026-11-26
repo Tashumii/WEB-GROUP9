@@ -53,18 +53,18 @@ $isOwner = $roleKey === 'owner';
 
 <div id="pageMessage" class="alert d-none settings-message" role="alert"></div>
 
-<div class="settings-tabs" role="tablist">
-    <button type="button" class="btn btn-pill active" data-settings-tab="profile">Profile</button>
-    <button type="button" class="btn btn-pill" data-settings-tab="security">Security</button>
-    <button type="button" class="btn btn-pill" data-settings-tab="sessions">Sessions</button>
+<div class="settings-tabs" role="tablist" aria-label="Settings sections">
+    <button type="button" class="btn btn-pill active" id="tabBtn-profile" role="tab" aria-selected="true" aria-controls="tab-profile" data-settings-tab="profile">Profile</button>
+    <button type="button" class="btn btn-pill" id="tabBtn-security" role="tab" aria-selected="false" aria-controls="tab-security" tabindex="-1" data-settings-tab="security">Security</button>
+    <button type="button" class="btn btn-pill" id="tabBtn-sessions" role="tab" aria-selected="false" aria-controls="tab-sessions" tabindex="-1" data-settings-tab="sessions">Sessions</button>
     <?php if ($isOwner): ?>
-        <button type="button" class="btn btn-pill" data-settings-tab="team">Team</button>
+        <button type="button" class="btn btn-pill" id="tabBtn-team" role="tab" aria-selected="false" aria-controls="tab-team" tabindex="-1" data-settings-tab="team">Team</button>
     <?php endif; ?>
-    <button type="button" class="btn btn-pill" data-settings-tab="businesses">Businesses</button>
+    <button type="button" class="btn btn-pill" id="tabBtn-businesses" role="tab" aria-selected="false" aria-controls="tab-businesses" tabindex="-1" data-settings-tab="businesses">Businesses</button>
 </div>
 
 <!-- profile -->
-<section id="tab-profile" class="settings-panel active">
+<section id="tab-profile" class="settings-panel active" role="tabpanel" aria-labelledby="tabBtn-profile" tabindex="0">
     <div class="ui-card">
         <div class="ui-card-header">
             <h2 class="ui-card-title">Account details</h2>
@@ -86,12 +86,28 @@ $isOwner = $roleKey === 'owner';
                     <input type="text" id="profileBusinessInput" class="form-control ui-input" value="Loading..." readonly>
                 </div>
             </div>
+
+            <hr class="my-4">
+
+            <form id="emailForm" class="row g-3" novalidate>
+                <div class="col-md-8">
+                    <label class="field-label" for="profileEmail">Email address <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="email" id="profileEmail" class="form-control ui-input" maxlength="254" placeholder="you@example.com" autocomplete="email">
+                    <div class="form-text" style="font-size:0.76rem;">Used only to confirm password changes. Leave blank to remove it.</div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn-ui btn-ui-primary w-100" id="emailBtn">Save email</button>
+                </div>
+                <div class="col-12">
+                    <div id="emailMsg" class="alert d-none settings-message" role="alert"></div>
+                </div>
+            </form>
         </div>
     </div>
 </section>
 
 <!-- security -->
-<section id="tab-security" class="settings-panel">
+<section id="tab-security" class="settings-panel" role="tabpanel" aria-labelledby="tabBtn-security" tabindex="0">
     <div class="ui-card">
         <div class="ui-card-header">
             <h2 class="ui-card-title">Change password</h2>
@@ -106,6 +122,19 @@ $isOwner = $roleKey === 'owner';
                     <label class="field-label" for="currentPassword">Current password</label>
                     <input type="password" id="currentPassword" class="form-control ui-input" autocomplete="current-password" required>
                 </div>
+                <div class="col-12 d-none" id="passwordEmailWrap">
+                    <label class="field-label" for="passwordEmail">Account email</label>
+                    <input type="email" id="passwordEmail" class="form-control ui-input" maxlength="254" placeholder="Re-enter the email on this account" autocomplete="email">
+                    <div class="form-text" style="font-size:0.76rem;">Required because this account has an email on file.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="field-label" for="passwordTwoFactorCode">Authenticator code <span class="text-muted fw-normal">(if 2FA enabled)</span></label>
+                    <input type="text" id="passwordTwoFactorCode" class="form-control ui-input" inputmode="numeric" maxlength="6" placeholder="123456">
+                </div>
+                <div class="col-md-6">
+                    <label class="field-label" for="passwordRecoveryCode">Recovery code <span class="text-muted fw-normal">(optional)</span></label>
+                    <input type="text" id="passwordRecoveryCode" class="form-control ui-input" maxlength="32" placeholder="XXXXX-XXXXX">
+                </div>
                 <div class="col-md-6">
                     <label class="field-label" for="newPassword">New password</label>
                     <input type="password" id="newPassword" class="form-control ui-input" minlength="8" maxlength="72" autocomplete="new-password" required>
@@ -118,12 +147,59 @@ $isOwner = $roleKey === 'owner';
                     <button type="submit" class="btn-ui btn-ui-primary" id="passwordBtn">Update password</button>
                 </div>
             </form>
+
+            <hr class="my-4">
+
+            <h2 class="ui-card-title">Two-factor authentication</h2>
+            <p class="ui-card-subtitle">Add a second step using an authenticator app.</p>
+            <div id="twoFactorMsg" class="alert d-none settings-message" role="alert"></div>
+            <div id="twoFactorStatus" class="mb-3"></div>
+
+            <div id="twoFactorSetup" class="d-none">
+                <div id="twoFactorQr" class="mb-3"></div>
+                <p class="form-text" style="font-size:0.76rem;">Secret: <code id="twoFactorSecret"></code></p>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="field-label" for="twoFactorCode">Verification code</label>
+                        <input type="text" id="twoFactorCode" class="form-control ui-input" inputmode="numeric" maxlength="6" placeholder="123456">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn-ui btn-ui-primary w-100" id="enableTwoFactorBtn">Enable 2FA</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="recoveryCodesBox" class="d-none mb-3">
+                <p class="fw-semibold mb-2">Save these recovery codes somewhere safe. Each can be used once.</p>
+                <pre id="recoveryCodesList" class="p-3 bg-light border rounded" style="font-size:0.8rem;"></pre>
+            </div>
+
+            <div id="twoFactorActions" class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn-ui btn-ui-outline" id="startTwoFactorBtn">Set up 2FA</button>
+                <button type="button" class="btn-ui btn-ui-outline d-none" id="regenerateRecoveryBtn">Regenerate recovery codes</button>
+            </div>
+
+            <div id="twoFactorDisableBox" class="d-none mt-3">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="field-label" for="disableTwoFactorPassword">Current password</label>
+                        <input type="password" id="disableTwoFactorPassword" class="form-control ui-input" autocomplete="current-password">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="field-label" for="disableTwoFactorCode">Authenticator code</label>
+                        <input type="text" id="disableTwoFactorCode" class="form-control ui-input" inputmode="numeric" maxlength="6" placeholder="123456">
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="button" class="btn-ui btn-ui-danger w-100" id="disableTwoFactorBtn">Disable 2FA</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- sessions -->
-<section id="tab-sessions" class="settings-panel">
+<section id="tab-sessions" class="settings-panel" role="tabpanel" aria-labelledby="tabBtn-sessions" tabindex="0">
     <div class="ui-card">
         <div class="ui-card-header d-flex align-items-start justify-content-between flex-wrap gap-2">
             <div>
@@ -157,7 +233,7 @@ $isOwner = $roleKey === 'owner';
 
 <?php if ($isOwner): ?>
 <!-- team -->
-<section id="tab-team" class="settings-panel">
+<section id="tab-team" class="settings-panel" role="tabpanel" aria-labelledby="tabBtn-team" tabindex="0">
     <div class="ui-card">
         <div class="ui-card-header">
             <h2 class="ui-card-title">Add a team member</h2>
@@ -224,7 +300,7 @@ $isOwner = $roleKey === 'owner';
 <?php endif; ?>
 
 <!-- businesses -->
-<section id="tab-businesses" class="settings-panel">
+<section id="tab-businesses" class="settings-panel" role="tabpanel" aria-labelledby="tabBtn-businesses" tabindex="0">
     <div class="ui-card">
         <div class="ui-card-header">
             <h2 class="ui-card-title">Your businesses</h2>
@@ -311,6 +387,20 @@ $isOwner = $roleKey === 'owner';
     var teamLoaded = false;
     var businessesLoaded = false;
     var sessionsLoaded = false;
+    var accountEmail = '';
+
+    function applyAccountEmail() {
+        var profileEmail = document.getElementById('profileEmail');
+        var emailWrap = document.getElementById('passwordEmailWrap');
+        var passwordEmail = document.getElementById('passwordEmail');
+
+        if (profileEmail) profileEmail.value = accountEmail;
+        if (emailWrap) emailWrap.classList.toggle('d-none', accountEmail === '');
+        if (passwordEmail) {
+            passwordEmail.value = '';
+            passwordEmail.required = accountEmail !== '';
+        }
+    }
 
     function showAlert(id, type, text) {
         var box = document.getElementById(id);
@@ -342,6 +432,9 @@ $isOwner = $roleKey === 'owner';
         Api.get('auth').then(function (data) {
             if (!data.authenticated) return;
 
+            accountEmail = String((data.user && data.user.email) || '');
+            applyAccountEmail();
+
             var active = null;
             (data.businesses || []).forEach(function (business) {
                 if (Number(business.id) === Number(data.active_business_id)) active = business;
@@ -352,6 +445,11 @@ $isOwner = $roleKey === 'owner';
                 document.getElementById('profileBusinessInput').value = active.name;
                 document.getElementById('profileRoleLabel').textContent = roleLabels[active.role] || active.role;
                 document.getElementById('profileRole').value = roleLabels[active.role] || active.role;
+            } else {
+                document.getElementById('profileBusiness').textContent = 'No business yet';
+                document.getElementById('profileBusinessInput').value = 'No business yet';
+                document.getElementById('profileRoleLabel').textContent = 'No role yet';
+                document.getElementById('profileRole').value = 'No role yet';
             }
         }).catch(function (err) {
             showAlert('pageMessage', 'danger', err.message);
@@ -553,30 +651,69 @@ $isOwner = $roleKey === 'owner';
     }
 
     // tabs
+    function activateSettingsTab(button, updateHash) {
+        if (!button) return;
+        var target = button.dataset.settingsTab;
+
+        document.querySelectorAll('[data-settings-tab]').forEach(function (item) {
+            var selected = item === button;
+            item.classList.toggle('active', selected);
+            item.setAttribute('aria-selected', selected ? 'true' : 'false');
+            item.setAttribute('tabindex', selected ? '0' : '-1');
+        });
+        document.querySelectorAll('.settings-panel').forEach(function (panel) {
+            var selected = panel.id === 'tab-' + target;
+            panel.classList.toggle('active', selected);
+            panel.hidden = !selected;
+        });
+
+        if (target === 'team' && !teamLoaded) {
+            teamLoaded = true;
+            loadTeam();
+        }
+        if (target === 'sessions' && !sessionsLoaded) {
+            sessionsLoaded = true;
+            loadSessions();
+        }
+        if (target === 'businesses' && !businessesLoaded) {
+            businessesLoaded = true;
+            loadBusinesses();
+        }
+
+        if (updateHash) {
+            try {
+                history.replaceState(null, '', '#' + target);
+            } catch (e) {}
+        }
+    }
+
     document.querySelectorAll('[data-settings-tab]').forEach(function (button) {
         button.addEventListener('click', function () {
-            var target = button.dataset.settingsTab;
-            document.querySelectorAll('[data-settings-tab]').forEach(function (item) {
-                item.classList.toggle('active', item === button);
-            });
-            document.querySelectorAll('.settings-panel').forEach(function (panel) {
-                panel.classList.toggle('active', panel.id === 'tab-' + target);
-            });
-
-            if (target === 'team' && !teamLoaded) {
-                teamLoaded = true;
-                loadTeam();
-            }
-            if (target === 'sessions' && !sessionsLoaded) {
-                sessionsLoaded = true;
-                loadSessions();
-            }
-            if (target === 'businesses' && !businessesLoaded) {
-                businessesLoaded = true;
-                loadBusinesses();
-            }
+            activateSettingsTab(button, true);
         });
     });
+
+    var settingsTabList = document.querySelector('.settings-tabs');
+    if (settingsTabList) {
+        settingsTabList.addEventListener('keydown', function (event) {
+            var keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+            if (keys.indexOf(event.key) === -1) return;
+
+            var buttons = Array.prototype.slice.call(document.querySelectorAll('[data-settings-tab]'));
+            var index = buttons.indexOf(document.activeElement);
+            if (index === -1) return;
+
+            event.preventDefault();
+            var nextIndex = index;
+            if (event.key === 'ArrowLeft') nextIndex = (index - 1 + buttons.length) % buttons.length;
+            if (event.key === 'ArrowRight') nextIndex = (index + 1) % buttons.length;
+            if (event.key === 'Home') nextIndex = 0;
+            if (event.key === 'End') nextIndex = buttons.length - 1;
+
+            buttons[nextIndex].focus();
+            buttons[nextIndex].click();
+        });
+    }
 
     // sign out other sessions
     var revokeAllSessionsBtn = document.getElementById('revokeAllSessionsBtn');
@@ -595,12 +732,50 @@ $isOwner = $roleKey === 'owner';
         });
     }
 
+    // email form
+    var emailForm = document.getElementById('emailForm');
+    if (emailForm) {
+        emailForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            var input = document.getElementById('profileEmail');
+            var email = input.value.trim();
+            var button = document.getElementById('emailBtn');
+
+            hideAlert('emailMsg');
+            if (email !== '' && !input.checkValidity()) {
+                showAlert('emailMsg', 'danger', 'Enter a valid email address (for example, name@example.com).');
+                input.focus();
+                return;
+            }
+
+            button.disabled = true;
+            Api.post('users', {
+                action: 'update_email',
+                email: email
+            }).then(function (data) {
+                accountEmail = String(data.email || '');
+                applyAccountEmail();
+                showAlert('emailMsg', 'success', data.message);
+            }).catch(function (err) {
+                showAlert('emailMsg', 'danger', err.message);
+            }).then(function () {
+                button.disabled = false;
+            });
+        });
+    }
+
     // password form
     document.getElementById('passwordForm').addEventListener('submit', function (event) {
         event.preventDefault();
         var current = document.getElementById('currentPassword').value;
         var next = document.getElementById('newPassword').value;
         var confirm = document.getElementById('confirmNewPassword').value;
+        var emailInput = document.getElementById('passwordEmail');
+        var email = emailInput ? emailInput.value.trim() : '';
+        var twoFactorInput = document.getElementById('passwordTwoFactorCode');
+        var recoveryInput = document.getElementById('passwordRecoveryCode');
+        var twoFactorCode = twoFactorInput ? twoFactorInput.value.trim() : '';
+        var recoveryCode = recoveryInput ? recoveryInput.value.trim() : '';
         var button = document.getElementById('passwordBtn');
 
         hideAlert('securityMsg');
@@ -612,9 +787,25 @@ $isOwner = $roleKey === 'owner';
             showAlert('securityMsg', 'danger', 'The new password must be at least 8 characters.');
             return;
         }
+        if (next === current) {
+            showAlert('securityMsg', 'danger', 'The new password must be different from your current password.');
+            return;
+        }
         if (next !== confirm) {
             showAlert('securityMsg', 'danger', 'The new passwords do not match.');
             return;
+        }
+        if (accountEmail !== '') {
+            if (email === '') {
+                showAlert('securityMsg', 'danger', 'Enter the email address on this account to confirm the change.');
+                emailInput.focus();
+                return;
+            }
+            if (emailInput && !emailInput.checkValidity()) {
+                showAlert('securityMsg', 'danger', 'Enter a valid email address.');
+                emailInput.focus();
+                return;
+            }
         }
 
         button.disabled = true;
@@ -622,9 +813,16 @@ $isOwner = $roleKey === 'owner';
             action: 'change_password',
             current_password: current,
             new_password: next,
-            confirm_password: confirm
+            confirm_password: confirm,
+            email: email,
+            two_factor_code: twoFactorCode,
+            recovery_code: recoveryCode
         }).then(function (data) {
             document.getElementById('passwordForm').reset();
+            if (emailInput) emailInput.value = '';
+            if (twoFactorInput) twoFactorInput.value = '';
+            if (recoveryInput) recoveryInput.value = '';
+            if (window.APP_USER) window.APP_USER.mustChangePassword = 0;
             showAlert('securityMsg', 'success', data.message);
         }).catch(function (err) {
             showAlert('securityMsg', 'danger', err.message);
@@ -632,6 +830,117 @@ $isOwner = $roleKey === 'owner';
             button.disabled = false;
         });
     });
+
+    function showTwoFactorMessage(type, text) {
+        showAlert('twoFactorMsg', type, text);
+    }
+
+    function refreshTwoFactorStatus() {
+        Api.post('users', { action: 'two_factor_status' }).then(function (data) {
+            var status = document.getElementById('twoFactorStatus');
+            var actions = document.getElementById('twoFactorActions');
+            var disableBox = document.getElementById('twoFactorDisableBox');
+            var regenerateBtn = document.getElementById('regenerateRecoveryBtn');
+            var startBtn = document.getElementById('startTwoFactorBtn');
+            if (data.enabled) {
+                status.innerHTML = '<span class="status-badge status-available">Enabled</span> <span class="text-muted" style="font-size:0.82rem;">Recovery codes remaining: ' + Number(data.recovery_codes_remaining) + '</span>';
+                startBtn.classList.add('d-none');
+                regenerateBtn.classList.remove('d-none');
+                disableBox.classList.remove('d-none');
+            } else {
+                status.innerHTML = '<span class="status-badge status-low">Disabled</span>';
+                startBtn.classList.remove('d-none');
+                regenerateBtn.classList.add('d-none');
+                disableBox.classList.add('d-none');
+                document.getElementById('twoFactorSetup').classList.add('d-none');
+            }
+        }).catch(function (err) {
+            showTwoFactorMessage('danger', err.message);
+        });
+    }
+
+    var startTwoFactorBtn = document.getElementById('startTwoFactorBtn');
+    if (startTwoFactorBtn) {
+        startTwoFactorBtn.addEventListener('click', function () {
+            hideAlert('twoFactorMsg');
+            startTwoFactorBtn.disabled = true;
+            Api.post('users', { action: 'two_factor_setup' }).then(function (data) {
+                document.getElementById('twoFactorSetup').classList.remove('d-none');
+                document.getElementById('twoFactorSecret').textContent = data.secret;
+                document.getElementById('twoFactorQr').innerHTML = data.qr_svg;
+                document.getElementById('twoFactorCode').value = '';
+            }).catch(function (err) {
+                showTwoFactorMessage('danger', err.message);
+            }).then(function () {
+                startTwoFactorBtn.disabled = false;
+            });
+        });
+    }
+
+    var enableTwoFactorBtn = document.getElementById('enableTwoFactorBtn');
+    if (enableTwoFactorBtn) {
+        enableTwoFactorBtn.addEventListener('click', function () {
+            hideAlert('twoFactorMsg');
+            var code = document.getElementById('twoFactorCode').value.trim();
+            enableTwoFactorBtn.disabled = true;
+            Api.post('users', { action: 'two_factor_enable', code: code }).then(function (data) {
+                document.getElementById('twoFactorSetup').classList.add('d-none');
+                var box = document.getElementById('recoveryCodesBox');
+                box.classList.remove('d-none');
+                document.getElementById('recoveryCodesList').textContent = (data.recovery_codes || []).join('\n');
+                showTwoFactorMessage('success', data.message);
+                refreshTwoFactorStatus();
+            }).catch(function (err) {
+                showTwoFactorMessage('danger', err.message);
+            }).then(function () {
+                enableTwoFactorBtn.disabled = false;
+            });
+        });
+    }
+
+    var disableTwoFactorBtn = document.getElementById('disableTwoFactorBtn');
+    if (disableTwoFactorBtn) {
+        disableTwoFactorBtn.addEventListener('click', function () {
+            hideAlert('twoFactorMsg');
+            var password = document.getElementById('disableTwoFactorPassword').value;
+            var code = document.getElementById('disableTwoFactorCode').value.trim();
+            disableTwoFactorBtn.disabled = true;
+            Api.post('users', { action: 'two_factor_disable', password: password, code: code }).then(function (data) {
+                document.getElementById('disableTwoFactorPassword').value = '';
+                document.getElementById('disableTwoFactorCode').value = '';
+                document.getElementById('recoveryCodesBox').classList.add('d-none');
+                showTwoFactorMessage('success', data.message);
+                refreshTwoFactorStatus();
+            }).catch(function (err) {
+                showTwoFactorMessage('danger', err.message);
+            }).then(function () {
+                disableTwoFactorBtn.disabled = false;
+            });
+        });
+    }
+
+    var regenerateRecoveryBtn = document.getElementById('regenerateRecoveryBtn');
+    if (regenerateRecoveryBtn) {
+        regenerateRecoveryBtn.addEventListener('click', function () {
+            hideAlert('twoFactorMsg');
+            var password = window.prompt('Enter your current password to regenerate recovery codes:');
+            var code = window.prompt('Enter your current authenticator code:');
+            if (password === null || code === null) return;
+            regenerateRecoveryBtn.disabled = true;
+            Api.post('users', { action: 'two_factor_regenerate_recovery', password: password, code: code }).then(function (data) {
+                var box = document.getElementById('recoveryCodesBox');
+                box.classList.remove('d-none');
+                document.getElementById('recoveryCodesList').textContent = (data.recovery_codes || []).join('\n');
+                showTwoFactorMessage('success', data.message);
+            }).catch(function (err) {
+                showTwoFactorMessage('danger', err.message);
+            }).then(function () {
+                regenerateRecoveryBtn.disabled = false;
+            });
+        });
+    }
+
+    refreshTwoFactorStatus();
 
     // add member
     var addMemberForm = document.getElementById('addMemberForm');
@@ -733,6 +1042,12 @@ $isOwner = $roleKey === 'owner';
             button.disabled = false;
         });
     });
+
+    var initialTab = (window.location.hash || '').replace(/^#/, '').replace(/[^a-z0-9_-]/gi, '');
+    if (initialTab) {
+        var initialTabButton = document.querySelector('[data-settings-tab="' + initialTab + '"]');
+        if (initialTabButton) activateSettingsTab(initialTabButton, false);
+    }
 
     loadProfile();
     if (window.APP_USER && Number(window.APP_USER.mustChangePassword) === 1) {

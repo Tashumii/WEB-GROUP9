@@ -143,6 +143,30 @@ include APPPATH . 'Views/includes/header.php';
 
 </div>
 
+<!-- AI pricing advice modal -->
+<div class="modal fade" id="aiAdviceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-robot me-2"></i>Smart pricing advice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="aiAdviceLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted">Analyzing sales history…</p>
+                </div>
+                <div id="aiAdviceContent" class="d-none">
+                    <p class="fw-semibold mb-1" id="aiAdviceItem"></p>
+                    <p class="text-muted small mb-3" id="aiAdviceMeta"></p>
+                    <div id="aiAdviceText" style="white-space:pre-wrap;"></div>
+                </div>
+                <div id="aiAdviceError" class="alert alert-danger d-none"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 (function () {
     var services = [];
@@ -167,6 +191,35 @@ include APPPATH . 'Views/includes/header.php';
         msg: document.getElementById('serviceMsg'),
         pills: document.getElementById('pills')
     };
+
+    var aiModal = null;
+
+    function openAiAdvice(itemType, item) {
+        if (!aiModal && typeof bootstrap !== 'undefined') {
+            aiModal = new bootstrap.Modal(document.getElementById('aiAdviceModal'));
+        }
+        var loading = document.getElementById('aiAdviceLoading');
+        var content = document.getElementById('aiAdviceContent');
+        var errBox = document.getElementById('aiAdviceError');
+        loading.classList.remove('d-none');
+        content.classList.add('d-none');
+        errBox.classList.add('d-none');
+        if (aiModal) aiModal.show();
+
+        Api.post('ai', { action: 'pricing_advice', item_type: itemType, item_id: item.id })
+            .then(function (data) {
+                loading.classList.add('d-none');
+                content.classList.remove('d-none');
+                document.getElementById('aiAdviceItem').textContent = (item.name || '') + ' — current price ' + peso(data.current_price);
+                document.getElementById('aiAdviceMeta').textContent = 'AI model: ' + (data.model || 'default');
+                document.getElementById('aiAdviceText').textContent = data.advice || '';
+            })
+            .catch(function (err) {
+                loading.classList.add('d-none');
+                errBox.classList.remove('d-none');
+                errBox.textContent = err.message || 'Failed to get advice.';
+            });
+    }
 
     function showMessage(text, isError) {
         els.msg.textContent = text;
@@ -193,7 +246,10 @@ include APPPATH . 'Views/includes/header.php';
                 '<td>' + escapeHtml(s.charged_per) + '</td>' +
                 '<td>' + peso(s.price) + '</td>' +
                 '<td><span class="status-badge ' + (active ? 'status-available' : 'status-low') + '">' + (active ? 'Available' : 'Unavailable') + '</span></td>' +
-                '<td class="text-end">' + (isAdmin ? '<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square"></i></button>' : '') + '</td>';
+                '<td class="text-end">' +
+                    '<button type="button" class="btn btn-sm btn-outline-primary ai-advice-btn me-1" aria-label="AI pricing advice" title="AI pricing advice"><i class="fa-solid fa-robot" aria-hidden="true"></i></button>' +
+                    (isAdmin ? '<button type="button" class="edit-btn" aria-label="Edit"><i class="fa-solid fa-pen-to-square"></i></button>' : '') +
+                '</td>';
             els.body.appendChild(tr);
         });
     }
@@ -286,10 +342,18 @@ include APPPATH . 'Views/includes/header.php';
 
     els.body.addEventListener('click', function (event) {
         var button = event.target.closest('.edit-btn');
-        if (!button || !isAdmin) return;
-        var row = button.closest('tr');
-        var service = services.filter(function (s) { return Number(s.id) === Number(row.dataset.id); })[0];
-        if (service) fillForm(service, row);
+        if (button && isAdmin) {
+            var row = button.closest('tr');
+            var service = services.filter(function (s) { return Number(s.id) === Number(row.dataset.id); })[0];
+            if (service) fillForm(service, row);
+            return;
+        }
+        var aiBtn = event.target.closest('.ai-advice-btn');
+        if (aiBtn) {
+            var arow = aiBtn.closest('tr');
+            var aservice = services.filter(function (s) { return Number(s.id) === Number(arow.dataset.id); })[0];
+            if (aservice) openAiAdvice('service', aservice);
+        }
     });
 
     els.add.addEventListener('click', function () {

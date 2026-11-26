@@ -15,7 +15,7 @@ class Auth extends ApiController
             }
 
             $user = $this->db->query(
-                'SELECT id, username, is_active, must_change_password FROM users WHERE id = ? LIMIT 1',
+                'SELECT id, username, email, is_active, must_change_password FROM users WHERE id = ? LIMIT 1',
                 [$userId]
             )->getRowArray();
             if (! $user || (int) $user['is_active'] !== 1) {
@@ -46,6 +46,7 @@ class Auth extends ApiController
                 'user' => [
                     'id' => (int) $user['id'],
                     'username' => $user['username'],
+                    'email' => (string) ($user['email'] ?? ''),
                     'must_change_password' => (int) $user['must_change_password'],
                 ],
                 'active_business_id' => $activeBusinessId,
@@ -110,6 +111,7 @@ class Auth extends ApiController
             $this->auth->recordAuthAttempt('login', $username, false);
             throw $e;
         }
+
         $this->auth->recordAuthAttempt('login', $username, true);
         $this->auth->establishUserSession($result['user'], $result['memberships']);
         return $this->json([
@@ -118,20 +120,26 @@ class Auth extends ApiController
             'user' => [
                 'id' => (int) $result['user']['id'],
                 'username' => $result['user']['username'],
+                'email' => (string) ($result['user']['email'] ?? ''),
                 'must_change_password' => (int) ($result['user']['must_change_password'] ?? 0),
             ],
             'active_business_id' => (int) (service('session')->get('business_id') ?? 0),
             'active_role' => service('session')->get('role'),
             'businesses' => $this->formatMemberships($result['memberships']),
+            'csrf_token' => $this->auth->csrfToken(),
         ]);
     }
 
     private function register(array $body)
     {
         $username = $this->inputString($body, 'username', 50);
+        $email = $this->inputString($body, 'email', 254);
         $password = (string) ($body['password'] ?? '');
         $confirmPassword = (string) ($body['confirm_password'] ?? '');
         if (($error = $this->validateUsername($username)) !== null) {
+            throw new ApiException($error, 400);
+        }
+        if (($error = $this->validateEmail($email)) !== null) {
             throw new ApiException($error, 400);
         }
         if ($password !== $confirmPassword) {
@@ -148,13 +156,25 @@ class Auth extends ApiController
             $this->auth->recordAuthAttempt('register', $username, false);
             throw new ApiException('Username already taken.', 409);
         }
+        if ($email !== '' && $this->db->table('users')->where('email', $email)->countAllResults() > 0) {
+            $this->auth->recordAuthAttempt('register', $username, false);
+            throw new ApiException('That email address is already registered.', 409);
+        }
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
         try {
-            $this->db->table('users')->insert(['username' => $username, 'password_hash' => $hash, 'is_active' => 1]);
+            $this->db->table('users')->insert([
+                'username' => $username,
+                'email' => $email !== '' ? $email : null,
+                'password_hash' => $hash,
+                'is_active' => 1,
+            ]);
         } catch (\Throwable $e) {
             if ((string) $e->getCode() === '23000') {
                 $this->auth->recordAuthAttempt('register', $username, false);
+                if (stripos($e->getMessage(), 'email') !== false) {
+                    throw new ApiException('That email address is already registered.', 409);
+                }
                 throw new ApiException('Username already taken.', 409);
             }
             throw $e;
@@ -171,10 +191,11 @@ class Auth extends ApiController
         return $this->json([
             'success' => true,
             'message' => 'Account created. Create your first business to continue.',
-            'user' => ['id' => $newUserId, 'username' => $username, 'must_change_password' => 0],
+            'user' => ['id' => $newUserId, 'username' => $username, 'email' => $email, 'must_change_password' => 0],
             'active_business_id' => 0,
             'active_role' => null,
             'businesses' => [],
+            'csrf_token' => $this->auth->csrfToken(),
         ], 201);
     }
 

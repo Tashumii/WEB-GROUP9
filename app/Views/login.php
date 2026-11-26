@@ -43,7 +43,7 @@
     <!-- login card -->
     <div class="ui-card shadow-sm p-4">
         <!-- alert box -->
-        <div id="alertBox" class="alert alert-danger py-2 px-3 <?= empty($errorMessage) ? 'd-none' : '' ?>" style="font-size:0.82rem;">
+        <div id="alertBox" class="alert alert-danger py-2 px-3 <?= empty($errorMessage) ? 'd-none' : '' ?>" role="alert" style="font-size:0.82rem;">
             <?= esc($errorMessage) ?>
         </div>
 
@@ -55,7 +55,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-user"></i></span>
                     <input type="text" name="username" id="username" class="form-control ui-input border-start-0" 
-                           placeholder="Enter your username" required autofocus>
+                           placeholder="Enter your username" maxlength="50" autocomplete="username" required autofocus>
                 </div>
             </div>
 
@@ -66,8 +66,8 @@
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-lock"></i></span>
                     <input type="password" name="password" id="password" class="form-control ui-input border-start-0 border-end-0" 
-                           placeholder="••••••••" required>
-                    <button type="button" class="input-group-text bg-white border-start-0" id="togglePassword" aria-label="Toggle password">
+                           placeholder="••••••••" maxlength="72" autocomplete="current-password" required>
+                    <button type="button" class="input-group-text bg-white border-start-0" id="togglePassword" aria-label="Show password" aria-pressed="false">
                         <i class="fa-solid fa-eye" id="toggleIcon"></i>
                     </button>
                 </div>
@@ -81,7 +81,6 @@
                 Sign in
             </button>
         </form>
-
         <p class="text-center text-muted mt-3 mb-0" style="font-size:0.82rem;">
             New to Sales Tracker? <a href="<?= site_url('register') ?>" class="text-dark fw-semibold">Create an account</a>
         </p>
@@ -109,6 +108,8 @@
         var isPassword = passwordInput.getAttribute('type') === 'password';
         passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
         toggleIcon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+        toggleBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+        toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
     });
 
     // ajax submit
@@ -153,10 +154,8 @@
             }
         })
         .catch(function () {
-            alertBox.textContent = 'Connection error. Please try again.';
-            alertBox.classList.remove('d-none');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Sign in';
+            // Fall back to a normal form POST when the API call itself fails.
+            document.getElementById('loginForm').submit();
         });
     });
 </script>

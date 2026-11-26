@@ -33,11 +33,11 @@
             <span class="brand-icon"><i class="fa-solid fa-bag-shopping"></i></span>
             <span>Sales Tracker</span>
         </a>
-        <p class="text-muted" style="font-size: 0.85rem;">Signed in as <?= $currentUsername ?>. Create your first business to continue.</p>
+        <p class="text-muted" style="font-size: 0.85rem;">Signed in as <?= esc($currentUsername) ?>. Create your first business to continue.</p>
     </div>
 
     <div class="ui-card shadow-sm p-4">
-        <div id="alertBox" class="alert alert-danger py-2 px-3 d-none" style="font-size:0.82rem;"></div>
+        <div id="alertBox" class="alert alert-danger py-2 px-3 d-none" role="alert" style="font-size:0.82rem;"></div>
         <noscript>
             <div class="alert alert-warning py-2 px-3" style="font-size:0.82rem;">
                 JavaScript is required to create a business.
@@ -53,7 +53,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-store"></i></span>
                     <input type="text" name="name" id="businessName" class="form-control ui-input border-start-0"
-                           placeholder="e.g. School Supplies near at BSU" maxlength="255" required autofocus>
+                           placeholder="e.g. School Supplies near at BSU" maxlength="255" autocomplete="organization" required autofocus>
                 </div>
             </div>
 

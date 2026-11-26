@@ -13,8 +13,8 @@ $routes->get('create-business', 'Pages::createBusiness');
 $routes->post('logout', 'Pages::logout');
 $routes->get('dashboard', 'Pages::dashboard');
 $routes->get('products', 'Pages::products');
-$routes->get('services', 'Pages::services');
 $routes->get('record-sale', 'Pages::recordSales');
+$routes->get('services', 'Pages::services');
 $routes->get('sales', 'Pages::sales');
 $routes->get('analytics', 'Pages::analytics');
 $routes->get('settings', 'Pages::settings');
@@ -29,3 +29,4 @@ $routes->match(['get', 'post', 'put', 'patch', 'delete'], 'api/services', 'Api\\
 $routes->match(['get', 'post', 'put', 'patch', 'delete'], 'api/sales', 'Api\\Sales::index');
 $routes->match(['get', 'post', 'put', 'patch', 'delete'], 'api/record-sales', 'Api\\RecordSales::index');
 $routes->match(['get', 'post', 'put', 'patch', 'delete'], 'api/analytics', 'Api\\Analytics::index');
+$routes->match(['get', 'post', 'put', 'patch', 'delete'], 'api/ai', 'Api\\AI::index');

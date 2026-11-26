@@ -70,10 +70,15 @@ class Pages extends BaseController
             return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'Your session expired. Please refresh the page and try again.']);
         }
         $username = trim((string) $this->request->getPost('username'));
+        $email = trim((string) $this->request->getPost('email'));
+        $email = mb_substr($email, 0, 254);
         $password = (string) $this->request->getPost('password');
         $confirm = (string) $this->request->getPost('confirm_password');
         if (strlen($username) < 3 || strlen($username) > 50 || ! preg_match('/^[A-Za-z0-9._-]+$/', $username)) {
             return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'Please enter a valid username.']);
+        }
+        if ($email !== '' && (preg_match('/[\r\n]/', $email) || filter_var($email, FILTER_VALIDATE_EMAIL) === false)) {
+            return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'Enter a valid email address.']);
         }
         if ($password !== $confirm) {
             return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'Passwords do not match.']);
@@ -89,18 +94,33 @@ class Pages extends BaseController
             $this->auth->recordAuthAttempt('register', $username, false);
             return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'Username already taken.']);
         }
+        if ($email !== '' && $db->table('users')->where('email', $email)->countAllResults() > 0) {
+            $this->auth->recordAuthAttempt('register', $username, false);
+            return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'That email address is already registered.']);
+        }
         $hash = password_hash($password, PASSWORD_DEFAULT);
         try {
-            $db->table('users')->insert(['username' => $username, 'password_hash' => $hash, 'is_active' => 1]);
+            $db->table('users')->insert([
+                'username' => $username,
+                'email' => $email !== '' ? $email : null,
+                'password_hash' => $hash,
+                'is_active' => 1,
+            ]);
             $userId = (int) $db->insertID();
             $this->auth->recordAuthAttempt('register', $username, true);
             $this->auth->establishUserSession([
-                'id' => $userId, 'username' => $username, 'password_hash' => $hash, 'must_change_password' => 0,
+                'id' => $userId, 'username' => $username, 'email' => $email, 'password_hash' => $hash, 'must_change_password' => 0,
             ], []);
             return redirect()->to(site_url('create-business'));
         } catch (\Throwable $e) {
             log_message('error', '[SalesTracker] register failed: {message}', ['message' => $e->getMessage()]);
-            return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => 'Could not create your account. Please try again.']);
+            $message = 'Could not create your account. Please try again.';
+            if ((string) $e->getCode() === '23000') {
+                $message = stripos($e->getMessage(), 'email') !== false
+                    ? 'That email address is already registered.'
+                    : 'Username already taken.';
+            }
+            return view('register', ['csrfToken' => $this->auth->csrfToken(), 'errorMessage' => $message]);
         }
     }
 
@@ -204,6 +224,9 @@ class Pages extends BaseController
             return redirect()->to(site_url('create-business'));
         }
         $role = $this->auth->membershipRole((int) $session->get('user_id'), $businessId) ?? '';
+        if ($role === 'staff' && in_array($viewName, ['Dashboard', 'Sales', 'Analytics'], true)) {
+            return redirect()->to(site_url('record-sale'));
+        }
         return view($viewName, [
             'csrfToken' => $this->auth->csrfToken(),
             'pageTitle' => $title,

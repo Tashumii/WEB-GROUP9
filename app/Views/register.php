@@ -42,7 +42,7 @@
     <!-- register card -->
     <div class="ui-card shadow-sm p-4">
         <!-- alert box -->
-        <div id="alertBox" class="alert alert-danger py-2 px-3 <?= empty($errorMessage) ? 'd-none' : '' ?>" style="font-size:0.82rem;"><?= esc($errorMessage ?? '') ?></div>
+        <div id="alertBox" class="alert alert-danger py-2 px-3 <?= empty($errorMessage) ? 'd-none' : '' ?>" role="alert" style="font-size:0.82rem;"><?= esc($errorMessage ?? '') ?></div>
         <noscript>
             <div class="alert alert-warning py-2 px-3" style="font-size:0.82rem;">
                 JavaScript is required to create an account.
@@ -57,8 +57,18 @@
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-user"></i></span>
                     <input type="text" name="username" id="username" class="form-control ui-input border-start-0"
-                           placeholder="letters, numbers, dot, underscore or dash" maxlength="50" required autofocus>
+                           placeholder="letters, numbers, dot, underscore or dash" maxlength="50" autocomplete="username" required autofocus>
                 </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="field-label">Email <span class="text-muted fw-normal">(optional)</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-envelope"></i></span>
+                    <input type="email" name="email" id="email" class="form-control ui-input border-start-0"
+                           placeholder="you@example.com" maxlength="254" autocomplete="email">
+                </div>
+                <div class="form-text" style="font-size:0.76rem;">Used to confirm password changes. You can add it later in Settings.</div>
             </div>
 
             <div class="mb-3">
@@ -66,7 +76,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-lock"></i></span>
                     <input type="password" name="password" id="password" class="form-control ui-input border-start-0 border-end-0"
-                           placeholder="At least 8 characters" minlength="8" maxlength="72" required>
+                           placeholder="At least 8 characters" minlength="8" maxlength="72" autocomplete="new-password" required>
                     <button type="button" class="input-group-text bg-white border-start-0 toggle-password" data-target="password" aria-label="Toggle password">
                         <i class="fa-solid fa-eye"></i>
                     </button>
@@ -78,7 +88,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-lock"></i></span>
                     <input type="password" name="confirm_password" id="confirmPassword" class="form-control ui-input border-start-0 border-end-0"
-                           placeholder="Re-enter your password" minlength="8" maxlength="72" required>
+                           placeholder="Re-enter your password" minlength="8" maxlength="72" autocomplete="new-password" required>
                     <button type="button" class="input-group-text bg-white border-start-0 toggle-password" data-target="confirmPassword" aria-label="Toggle password">
                         <i class="fa-solid fa-eye"></i>
                     </button>
@@ -110,6 +120,8 @@
             var isPassword = input.getAttribute('type') === 'password';
             input.setAttribute('type', isPassword ? 'text' : 'password');
             icon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            btn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+            btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
         });
     });
 
@@ -128,18 +140,26 @@
         e.preventDefault();
 
         var username = document.getElementById('username').value.trim();
+        var emailInput = document.getElementById('email');
+        var email = emailInput.value.trim();
         var password = document.getElementById('password').value;
         var confirmPassword = document.getElementById('confirmPassword').value;
 
         document.getElementById('alertBox').classList.add('d-none');
 
         if (!username || !password || !confirmPassword) {
-            showError('Please fill in all fields.');
+            showError('Please fill in all required fields.');
             return;
         }
 
         if (!/^[A-Za-z0-9_.-]{3,50}$/.test(username)) {
             showError('Username must be 3-50 characters using letters, numbers, dot, underscore or dash.');
+            return;
+        }
+
+        if (email !== '' && !emailInput.checkValidity()) {
+            showError('Enter a valid email address (for example, name@example.com).');
+            emailInput.focus();
             return;
         }
 
@@ -167,6 +187,7 @@
             body: JSON.stringify({
                 action: 'register',
                 username: username,
+                email: email,
                 password: password,
                 confirm_password: confirmPassword
             })

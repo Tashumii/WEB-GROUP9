@@ -62,7 +62,8 @@ abstract class ApiController extends BaseController
 
             return $callback($body, $userId, $businessId);
         } catch (ApiException $e) {
-            return $this->jsonError($e->getMessage(), $e->status);
+            $reason = $e->status === 419 ? 'Page Expired' : '';
+            return $this->jsonError($e->getMessage(), $e->status, $reason);
         } catch (Throwable $e) {
             log_message('error', '[SalesTracker] {class}: {message} in {file}:{line}', [
                 'class' => get_class($e),
@@ -96,14 +97,14 @@ abstract class ApiController extends BaseController
         return $this->requestBody;
     }
 
-    protected function json(array $data, int $status = 200)
+    protected function json(array $data, int $status = 200, string $reason = '')
     {
-        return $this->response->setStatusCode($status)->setJSON($data);
+        return $this->response->setStatusCode($status, $reason)->setJSON($data);
     }
 
-    protected function jsonError(string $message, int $status = 400)
+    protected function jsonError(string $message, int $status = 400, string $reason = '')
     {
-        return $this->json(['success' => false, 'error' => $message], $status);
+        return $this->json(['success' => false, 'error' => $message], $status, $reason);
     }
 
     protected function inputString(array $body, string $key, int $maxLength = 255): string
@@ -148,6 +149,23 @@ abstract class ApiController extends BaseController
         }
         if (in_array(strtolower($password), ['password', '12345678', '123456789', 'qwerty', 'qwerty123', 'letmein', 'admin123', 'iloveyou', 'changeme'], true)) {
             return 'That password is too common. Choose something less guessable.';
+        }
+        return null;
+    }
+
+    protected function validateEmail(string $email): ?string
+    {
+        if ($email === '') {
+            return null;
+        }
+        if (strlen($email) > 254) {
+            return 'Email must be at most 254 characters.';
+        }
+        if (preg_match('/[\r\n]/', $email)) {
+            return 'Enter a valid email address.';
+        }
+        if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return 'Enter a valid email address.';
         }
         return null;
     }

@@ -285,13 +285,15 @@ class SalesTrackerAuth
 
     public function isRegisterRateLimited(): bool
     {
-        return $this->recentFailureCount('register', '', 3600, $this->clientIp()) >= 5;
+        // Count every attempt, not just failures: otherwise a script could keep
+        // creating accounts forever as long as each registration succeeds.
+        return $this->recentAttemptCount('register', $this->clientIp(), 3600) >= 5;
     }
 
     public function authenticate(string $username, string $password): array
     {
         $user = $this->db->query(
-            'SELECT id, username, password_hash, is_active, must_change_password FROM users WHERE username = ? LIMIT 1',
+            'SELECT id, username, email, password_hash, is_active, must_change_password, two_factor_enabled, two_factor_secret, two_factor_recovery_codes, two_factor_last_used FROM users WHERE username = ? LIMIT 1',
             [$username]
         )->getRowArray();
         if (! $user || (int) $user['is_active'] !== 1 || ! password_verify($password, (string) $user['password_hash'])) {
@@ -396,6 +398,16 @@ class SalesTrackerAuth
             $this->session->set('session_row_seen', time());
         }
         return true;
+    }
+
+    private function recentAttemptCount(string $action, string $ip, int $seconds): int
+    {
+        $row = $this->db->query(
+            'SELECT COUNT(*) AS count FROM auth_attempts
+             WHERE action = ? AND ip_address = ? AND attempted_at >= DATE_SUB(NOW(), INTERVAL ' . (int) $seconds . ' SECOND)',
+            [$action, $ip]
+        )->getRowArray();
+        return (int) ($row['count'] ?? 0);
     }
 
     private function recentFailureCount(string $action, string $username, int $seconds, ?string $ip = null): int

@@ -13,14 +13,18 @@ $mustChangePassword = (int) ($session->get('must_change_password') ?? 0);
 $initials = strtoupper(substr($currentUsername, 0, 2));
 
 $navigation = [
-    ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-table-cells-large', 'route' => 'dashboard'],
-    ['key' => 'record', 'label' => 'Record Sale', 'icon' => 'fa-cart-plus', 'route' => 'record-sale'],
-    ['key' => 'products', 'label' => 'Products', 'icon' => 'fa-boxes-stacked', 'route' => 'products'],
-    ['key' => 'services', 'label' => 'Services', 'icon' => 'fa-print', 'route' => 'services'],
-    ['key' => 'sales', 'label' => 'Sales History', 'icon' => 'fa-clock-rotate-left', 'route' => 'sales'],
-    ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'fa-chart-column', 'route' => 'analytics'],
-    ['key' => 'settings', 'label' => 'Settings', 'icon' => 'fa-sliders', 'route' => 'settings'],
+    ['key' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'fa-table-cells-large', 'route' => 'dashboard', 'roles' => ['owner', 'admin']],
+    ['key' => 'record', 'label' => 'Record Sale', 'icon' => 'fa-cart-plus', 'route' => 'record-sale', 'roles' => ['owner', 'admin', 'staff']],
+    ['key' => 'products', 'label' => 'Products', 'icon' => 'fa-boxes-stacked', 'route' => 'products', 'roles' => ['owner', 'admin', 'staff']],
+    ['key' => 'services', 'label' => 'Services', 'icon' => 'fa-print', 'route' => 'services', 'roles' => ['owner', 'admin', 'staff']],
+    ['key' => 'sales', 'label' => 'Sales History', 'icon' => 'fa-clock-rotate-left', 'route' => 'sales', 'roles' => ['owner', 'admin']],
+    ['key' => 'analytics', 'label' => 'Analytics', 'icon' => 'fa-chart-column', 'route' => 'analytics', 'roles' => ['owner', 'admin']],
+    ['key' => 'settings', 'label' => 'Settings', 'icon' => 'fa-sliders', 'route' => 'settings', 'roles' => ['owner', 'admin', 'staff']],
 ];
+
+$navigation = array_values(array_filter($navigation, static function (array $item) use ($currentRoleKey): bool {
+    return in_array($currentRoleKey, $item['roles'] ?? ['owner', 'admin', 'staff'], true);
+}));
 ?>
 <!doctype html>
 <html lang="en" style="color-scheme: light">
@@ -40,7 +44,7 @@ $navigation = [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<?= base_url('css/admin.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('css/style.css') ?>?v=<?= (int) @filemtime(FCPATH . 'css/style.css') ?>">
 
     <script>
         (function () {
@@ -54,13 +58,13 @@ $navigation = [
             } catch (error) {}
         })();
     </script>
-    <script src="<?= base_url('js/api.js') ?>"></script>
+    <script src="<?= base_url('js/api.js') ?>?v=<?= (int) @filemtime(FCPATH . 'js/api.js') ?>"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body class="dashboard-layout">
 <a class="skip-link" href="#main-content">Skip to main content</a>
-<script src="<?= base_url('js/script.js') ?>"></script>
+<script src="<?= base_url('js/script.js') ?>?v=<?= (int) @filemtime(FCPATH . 'js/script.js') ?>"></script>
 <script>
     window.APP_USER = <?= json_encode([
         'id' => $userId,
